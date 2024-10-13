@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <modules>
+        <module>common</module>
+        <module>codegen</module>
+        <module>querier</module>
+    </modules>
+
+    <properties>
+        <!--//region Maven Configuration -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <maven.main.skip>false</maven.main.skip>
+        <maven.deploy.skip>false</maven.deploy.skip>
+        <maven.install.skip>false</maven.install.skip>
+        <deployAtEnd>true</deployAtEnd>
+        <!--//endregion -->
+        <!--//region Maven Plugins -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
+        <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
+        <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+        <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+        <maven-source-plugin.version>3.1.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+        <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
+        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
+
+        <!--//endregion -->
+        <!--//region Annotation Processors -->
+        <versions.lombok>1.18.32</versions.lombok>
+        <versions.auto-service>1.1.1</versions.auto-service>
+        <versions.jetbrains-annotations>24.1.0</versions.jetbrains-annotations>
+        <versions.immutables>2.9.3</versions.immutables>
+        <versions.mapstruct>1.5.5.Final</versions.mapstruct>
+        <versions.lombok-mapstruct>0.2.0</versions.lombok-mapstruct>
+        <versions.junit5>5.10.0</versions.junit5>
+        <versions.mockito>5.11.0</versions.mockito>
+        <versions.mockito-inline>5.2.0</versions.mockito-inline>
+        <versions.slf4j>2.0.9</versions.slf4j>
+        <!--//endregion -->
+        <!--//region Protobuf ! do not use 4+ yet -->
+        <versions.protoc>3.21.12</versions.protoc>
+        <versions.grpc>1.66.0</versions.grpc>
+        <!--//endregion -->
+        <!--//region Components -->
+        <versions.pdfbox>3.0.2</versions.pdfbox>
+        <versions.vertx>4.5.10</versions.vertx>
+        <!-- !! must same as vertx required version-->
+        <versions.vertx-netty>4.1.111.Final</versions.vertx-netty>
+        <versions.micrometer>1.12.4</versions.micrometer>
+        <versions.vertx-opentelemetry>1.18.0</versions.vertx-opentelemetry>
+        <versions.jool>0.9.15</versions.jool>
+        <versions.jackson>2.16.1</versions.jackson>
+        <versions.compile-testing>0.21.0</versions.compile-testing>
+        <versions.logback-classic>1.5.3</versions.logback-classic>
+        <versions.caffeine>3.1.8</versions.caffeine>
+        <versions.fastexecl>0.18.3</versions.fastexecl>
+        <versions.lucene>9.10.0</versions.lucene>
+        <!--//endregion -->
+        <release.version>${project.version}</release.version>
+        <module.name>stack</module.name>
+        <launcher.class>io.vertx.core.Launcher</launcher.class>
+        <launcher.verticle>com.medtreehealth.vertx.core.verticle.AutoLauncher</launcher.verticle>
+    </properties>
+    <groupId>io.github.zenliucn.vax</groupId>
+    <artifactId>vax-stack</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <description>Vax is a vert.x application extensions</description>
+    <dependencyManagement>
+        <dependencies>
+            <!--//region Processor -->
+            <!-- <dependency>
+                 <groupId>org.immutables</groupId>
+                 <artifactId>bom</artifactId>
+                 <version>${versions.immutables}</version>
+                 <scope>import</scope>
+                 <type>pom</type>
+             </dependency>-->
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${versions.jetbrains-annotations}</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <optional>true</optional>
+                <version>${versions.lombok}</version>
+            </dependency>
+            <!--  <dependency>
+                  <groupId>org.mapstruct</groupId>
+                  <artifactId>mapstruct-processor</artifactId>
+                  <version>${versions.mapstruct}</version>
+                  <optional>true</optional>
+              </dependency>
+              <dependency>
+                  <groupId>org.mapstruct</groupId>
+                  <artifactId>mapstruct</artifactId>
+                  <version>${versions.mapstruct}</version>
+                  <optional>true</optional>
+              </dependency>
+              <dependency>
+                  <groupId>org.projectlombok</groupId>
+                  <artifactId>lombok-mapstruct-binding</artifactId>
+                  <version>${versions.lombok-mapstruct}</version>
+                  <optional>true</optional>
+                  <scope>provided</scope>
+              </dependency>
+              -->
+            <dependency>
+                <groupId>com.google.auto.service</groupId>
+                <artifactId>auto-service</artifactId>
+                <version>${versions.auto-service}</version>
+                <optional>true</optional>
+                <scope>provided</scope>
+            </dependency>
+            <!--//endregion -->
+            <!--//region API -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${versions.slf4j}</version>
+            </dependency>
+            <!--//endregion -->
+            <!--//region utilities -->
+            <dependency>
+                <groupId>one.util</groupId>
+                <artifactId>streamex</artifactId>
+                <version>${versions.streamex}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jool</artifactId>
+                <version>${versions.jool}</version>
+            </dependency>
+            <!--//endregion -->
+            <!--//region Components -->
+            <!--//region Lucene -->
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-core</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-analysis-common</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-analysis-smartcn</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-analysis-icu</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-highlighter</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-join</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-misc</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-suggest</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-replicator</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-queryparser</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-queries</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-memory</artifactId>
+                <version>${versions.lucene}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.lucene</groupId>
+                <artifactId>lucene-test-framework</artifactId>
+                <version>${versions.lucene}</version>
+                <scope>test</scope>
+            </dependency>
+            <!--//endregion -->
+            <!--//region PDF BOX -->
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${versions.pdfbox}</version>
+            </dependency>
+            <!--//endregion -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-bom</artifactId>
+                <version>${versions.micrometer}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${versions.vertx-opentelemetry}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-otlp</artifactId>
+                <version>${versions.vertx-opentelemetry}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.squareup.okhttp3</groupId>
+                        <artifactId>okhttp</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.semconv</groupId>
+                <artifactId>opentelemetry-semconv</artifactId>
+                <version>1.25.0-alpha</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.semconv</groupId>
+                <artifactId>opentelemetry-semconv-incubating</artifactId>
+                <version>1.25.0-alpha</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup</groupId>
+                <artifactId>javapoet</artifactId>
+                <version>${versions.javapoet}</version>
+                <optional>true</optional>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.testing.compile</groupId>
+                <artifactId>compile-testing</artifactId>
+                <version>${versions.compile-testing}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${versions.vertx-netty}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${versions.grpc}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${versions.caffeine}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${versions.jackson}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.dhatim</groupId>
+                <artifactId>fastexcel</artifactId>
+                <version>${versions.fastexecl}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.dhatim</groupId>
+                <artifactId>fastexcel-reader</artifactId>
+                <version>${versions.fastexecl}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-stack-depchain</artifactId>
+                <version>${versions.vertx}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--//endregion -->
+            <!--//region Overrides -->
+            <dependency>
+                <groupId>io.termd</groupId>
+                <artifactId>termd-core</artifactId>
+                <version>1.1.6</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-databind</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!--//endregion -->
+            <!--//region Test -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${versions.mockito}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${versions.mockito}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${versions.mockito-inline}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${versions.logback-classic}</version>
+                <scope>test</scope>
+            </dependency>
+            <!--//endregion -->
+            <!--//region BOM -->
+
+            <!--//endregion -->
+        </dependencies>
+    </dependencyManagement>
+    <profiles>
+    </profiles>
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </extension>
+        </extensions>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.xolstice.maven.plugins</groupId>
+                    <artifactId>protobuf-maven-plugin</artifactId>
+                    <version>${protobuf-maven-plugin.version}</version>
+                    <configuration>
+                        <!--suppress MavenModelInspection -->
+                        <protocArtifact>com.google.protobuf:protoc:${versions.protoc}:exe:${os.detected.classifier}
+                        </protocArtifact>
+                        <pluginId>grpc-java</pluginId>
+                        <!--suppress MavenModelInspection -->
+                        <pluginArtifact>io.grpc:protoc-gen-grpc-java:${versions.grpc}:exe:${os.detected.classifier}
+                        </pluginArtifact>
+                        <protocPlugins>
+                            <protocPlugin>
+                                <id>vertx-grpc-protoc-plugin2</id>
+                                <groupId>io.vertx</groupId>
+                                <artifactId>vertx-grpc-protoc-plugin2</artifactId>
+                                <version>${versions.vertx}</version>
+                                <mainClass>io.vertx.grpc.plugin.VertxGrpcGenerator</mainClass>
+                            </protocPlugin>
+                        </protocPlugins>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>generate-protobuf</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>compile</goal>
+                                <goal>compile-custom</goal>
+                                <goal>test-compile</goal>
+                                <goal>test-compile-custom</goal>
+                            </goals>
+                        </execution>
+
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <dependencies>
+        <!--//region Marker -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <!--//endregion -->
+        <!--//region processor -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <!--//endregion -->
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+    </dependencies>
+</project>
