@@ -9,7 +9,10 @@ import cn.zenliu.vax.common.trait.Versioned;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface Entry extends Identified, Versioned, Element {
+public interface Entry extends
+        Identified,
+        Versioned,
+        Element {
     @Override
     Class<? extends Entry> $type();
 }

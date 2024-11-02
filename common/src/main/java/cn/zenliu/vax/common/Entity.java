@@ -8,7 +8,7 @@ import cn.zenliu.vax.common.trait.Disposable;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface Entity extends Records, Disposable {
+public interface Entity extends Records {
     @Override
     Class<? extends Entity> $type();
 }
