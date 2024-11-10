@@ -25,15 +25,15 @@ import java.util.function.Function;
  * @author Zen.Liu
  * @since 2024-10-13
  */
-public interface Binary {
-    ByteBuf $b();
+public interface BinaryX {
+    ByteBuf raw();
 
     default int writeable() {
-        return $b().capacity() - $b().writerIndex();
+        return raw().capacity() - raw().writerIndex();
     }
 
     default int capacity() {
-        return $b().capacity();
+        return raw().capacity();
     }
 
     default int readable() {
@@ -41,85 +41,85 @@ public interface Binary {
     }
 
     default int length() {
-        return $b().readableBytes();
+        return raw().readableBytes();
     }
 
-    default Binary slice(int from, int to) {
-        return create($b().slice(from, to));
+    default BinaryX slice(int from, int to) {
+        return create(raw().slice(from, to));
     }
 
     default Buffer toBuffer() {
-        return BufferImpl.buffer($b());
+        return BufferImpl.buffer(raw());
     }
 
     default boolean b() {
-        var v = $b().readByte();
+        var v = raw().readByte();
         return v > 0;
     }
 
-    default Binary b(boolean b) {
-        $b().writeByte(b ? 1 : -1);
+    default BinaryX b(boolean b) {
+        raw().writeByte(b ? 1 : -1);
         return this;
     }
 
     default byte i1() {
-        return $b().readByte();
+        return raw().readByte();
     }
 
-    default Binary i1(byte b) {
-        $b().writeByte(b);
+    default BinaryX i1(byte b) {
+        raw().writeByte(b);
         return this;
     }
 
     default short i2() {
-        return $b().readShort();
+        return raw().readShort();
     }
 
-    default Binary i2(short b) {
-        $b().writeShort(b);
+    default BinaryX i2(short b) {
+        raw().writeShort(b);
         return this;
     }
 
     default int i4() {
-        return $b().readInt();
+        return raw().readInt();
     }
 
-    default Binary i4(int b) {
-        $b().writeInt(b);
+    default BinaryX i4(int b) {
+        raw().writeInt(b);
         return this;
     }
 
     default long i8() {
-        return $b().readLong();
+        return raw().readLong();
     }
 
-    default Binary i8(long b) {
-        $b().writeLong(b);
+    default BinaryX i8(long b) {
+        raw().writeLong(b);
         return this;
     }
 
 
     default float f4() {
-        return $b().readFloat();
+        return raw().readFloat();
     }
 
-    default Binary f4(float b) {
-        $b().writeFloat(b);
+    default BinaryX f4(float b) {
+        raw().writeFloat(b);
         return this;
     }
 
     default double f8() {
-        return $b().readDouble();
+        return raw().readDouble();
     }
 
-    default Binary f8(double b) {
-        $b().writeDouble(b);
+    default BinaryX f8(double b) {
+        raw().writeDouble(b);
         return this;
     }
 
 
     default int v4() {
-        var b = $b();
+        var b = raw();
         var result = 0;
         var shift = 0;
         var by = b.readByte();
@@ -132,8 +132,8 @@ public interface Binary {
         return result;
     }
 
-    default Binary v4(int n) {
-        var b = $b();
+    default BinaryX v4(int n) {
+        var b = raw();
         while ((n & ~0x7F) != 0) {
             b.writeByte(((byte) ((n & 0x7F) | 0x80)));
             n >>>= 7;
@@ -144,7 +144,7 @@ public interface Binary {
 
 
     default long v8() {
-        var b = $b();
+        var b = raw();
         var result = 0L;
         var shift = 0L;
         var by = b.readByte();
@@ -157,8 +157,8 @@ public interface Binary {
         return result;
     }
 
-    default Binary v8(long n) {
-        var b = $b();
+    default BinaryX v8(long n) {
+        var b = raw();
         while ((n & ~0x7FL) != 0) {
             b.writeByte(((byte) ((n & 0x7FL) | 0x80L)));
             n >>>= 7;
@@ -172,7 +172,7 @@ public interface Binary {
         return (v >> 1) ^ -(v & 1);
     }
 
-    default Binary z4(int v) {
+    default BinaryX z4(int v) {
         v = (v << 1) ^ (v >> 31);
         return v4(v);
     }
@@ -182,7 +182,7 @@ public interface Binary {
         return (v >> 1L) ^ -(v & 1L);
     }
 
-    default Binary z8(long v) {
+    default BinaryX z8(long v) {
         v = (v << 1L) ^ (v >> 63);
         return v8(v);
     }
@@ -192,18 +192,18 @@ public interface Binary {
         if (n < 0) return null;
         var b = new byte[n];
         if (n == 0) return b;
-        $b().readBytes(b);
+        raw().readBytes(b);
         return b;
     }
 
-    default Binary $bs(byte @Nullable [] n) {
+    default BinaryX $bs(byte @Nullable [] n) {
         if (n == null) {
             return v4(-1);
         }
         if (n.length == 0) {
             return v4(0);
         }
-        v4(n.length).$b().writeBytes(n);
+        v4(n.length).raw().writeBytes(n);
         return this;
     }
 
@@ -211,7 +211,7 @@ public interface Binary {
      * @return peek a byte
      */
     default byte $p1() {
-        var b = $b();
+        var b = raw();
         return b.getByte(b.readerIndex());
     }
 
@@ -219,7 +219,7 @@ public interface Binary {
      * @return peek 4 byte
      */
     default int $p4() {
-        var b = $b();
+        var b = raw();
         return b.getInt(b.readerIndex());
     }
 
@@ -227,7 +227,7 @@ public interface Binary {
      * @return peek 8 byte
      */
     default long $p8() {
-        var b = $b();
+        var b = raw();
         return b.getLong(b.readerIndex());
     }
 
@@ -236,11 +236,11 @@ public interface Binary {
         if (n == -1) return null;
         if (n == 0) return "";
         var b = new byte[n];
-        $b().readBytes(b);
+        raw().readBytes(b);
         return new String(b, StandardCharsets.UTF_8);
     }
 
-    default Binary str(String v) {
+    default BinaryX str(String v) {
         if (v == null) {
             return z4(-1);
         }
@@ -248,24 +248,24 @@ public interface Binary {
             return z4(0);
         }
         var a = v.getBytes(StandardCharsets.UTF_8);
-        z4(a.length).$b().writeBytes(a);
+        z4(a.length).raw().writeBytes(a);
         return this;
     }
 
-    default Binary accept(Consumer<Binary> act) {
+    default BinaryX accept(Consumer<BinaryX> act) {
         act.accept(this);
         return this;
     }
 
-    default <R> R apply(Function<Binary, R> act) {
+    default <R> R apply(Function<BinaryX, R> act) {
         return act.apply(this);
     }
 
-    default <R> R sized(BiFunction<Binary, Integer, R> act) {
+    default <R> R sized(BiFunction<BinaryX, Integer, R> act) {
         return act.apply(this, v4());
     }
 
-    default <R> R sizedMaybe(BiFunction<Binary, Integer, R> act) {
+    default <R> R sizedMaybe(BiFunction<BinaryX, Integer, R> act) {
         return act.apply(this, z4());
     }
 
@@ -274,36 +274,36 @@ public interface Binary {
      * @param write the write action
      * @return range of byte index that write
      */
-    default Range range(Consumer<Binary> write) {
-        var v = $b().writerIndex();
+    default Range range(Consumer<BinaryX> write) {
+        var v = raw().writerIndex();
         write.accept(this);
-        return new Range(v, $b().writerIndex());
+        return new Range(v, raw().writerIndex());
     }
 
-    default Range meta(long id, Consumer<Binary> act) {
+    default Range meta(long id, Consumer<BinaryX> act) {
         return range(a -> act.accept(a.i8(id)));
     }
 
-    default <R> R meta(BiFunction<Binary, Long, R> act) {
+    default <R> R meta(BiFunction<BinaryX, Long, R> act) {
         return  act.apply(this, i8());
     }
 
     record Range(int from, int to) {
     }
 
-    static Binary create(Buffer buffer) {
+    static BinaryX create(Buffer buffer) {
         return new P(buffer instanceof BufferImpl f ? f.byteBuf() : P.alloc.buffer().writeBytes(buffer.getBytes()));
     }
 
-    static Binary create(ByteBuf buf) {
+    static BinaryX create(ByteBuf buf) {
         return new P(buf);
     }
 
-    static Binary create(int capacity) {
+    static BinaryX create(int capacity) {
         return new P(P.alloc.buffer(capacity));
     }
 
-    record P(ByteBuf $b) implements Binary {
+    record P(ByteBuf raw) implements BinaryX {
         public static final ByteBufAllocator alloc = VertxByteBufAllocator.DEFAULT;
     }
 }

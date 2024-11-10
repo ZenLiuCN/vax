@@ -12,34 +12,34 @@ import java.util.regex.Pattern;
  * Case converter
  * @author Zen.Liu
  */
-sealed public interface Cases permits
-        Cases.Camel,
-        Cases.Kebab,
-        Cases.LowerQualified,
-        Cases.Pascal,
-        Cases.Qualified,
-        Cases.Raw,
-        Cases.UpperKebab,
-        Cases.Snake,
-        Cases.UpperQualified,
-        Cases.UpperSnake {
-    Cases RAW = new Raw();
-    Cases CAMEL = new Camel();
-    Cases LOWER_CAMEL = CAMEL;
-    Cases PASCAL = new Pascal();
-    Cases UPPER_CAMEL = PASCAL;
+sealed public interface CaseX permits
+        CaseX.Camel,
+        CaseX.Kebab,
+        CaseX.LowerQualified,
+        CaseX.Pascal,
+        CaseX.Qualified,
+        CaseX.Raw,
+        CaseX.UpperKebab,
+        CaseX.Snake,
+        CaseX.UpperQualified,
+        CaseX.UpperSnake {
+    CaseX RAW = new Raw();
+    CaseX CAMEL = new Camel();
+    CaseX LOWER_CAMEL = CAMEL;
+    CaseX PASCAL = new Pascal();
+    CaseX UPPER_CAMEL = PASCAL;
 
-    Cases SCREAMING_KEBAB = new UpperKebab();
-    Cases UPPER_KEBAB = SCREAMING_KEBAB;
-    Cases KEBAB = new Kebab();
-    Cases LOWER_KEBAB = KEBAB;
-    Cases UPPER_SNAKE = new UpperSnake();
-    Cases SNAKE = new Snake();
-    Cases LOWER_SNAKE = SNAKE;
-    Cases QUALIFIED = new Qualified();
-    Cases LOWER_QUALIFIED = new LowerQualified();
-    Cases UPPER_QUALIFIED = new UpperQualified();
-    Map<String, Cases> CASES = Map.ofEntries(
+    CaseX SCREAMING_KEBAB = new UpperKebab();
+    CaseX UPPER_KEBAB = SCREAMING_KEBAB;
+    CaseX KEBAB = new Kebab();
+    CaseX LOWER_KEBAB = KEBAB;
+    CaseX UPPER_SNAKE = new UpperSnake();
+    CaseX SNAKE = new Snake();
+    CaseX LOWER_SNAKE = SNAKE;
+    CaseX QUALIFIED = new Qualified();
+    CaseX LOWER_QUALIFIED = new LowerQualified();
+    CaseX UPPER_QUALIFIED = new UpperQualified();
+    Map<String, CaseX> CASES = Map.ofEntries(
             Map.entry("RAW_CASE", RAW),
             Map.entry("UPPER_QUALIFIED_CASE", UPPER_QUALIFIED),
             Map.entry("CAMEL_CASE", CAMEL),
@@ -57,7 +57,7 @@ sealed public interface Cases permits
             Map.entry("LOWER_QUALIFIED_CASE", LOWER_QUALIFIED),
             Map.entry("UPPER_QUALIFIED", UPPER_QUALIFIED)
     );
-    Map<Class<? extends Cases>, Cases> CLASS_CASES = Map.ofEntries(
+    Map<Class<? extends CaseX>, CaseX> CLASS_CASES = Map.ofEntries(
             //Map.entry(Raw.class, RAW),
             Map.entry(Qualified.class, UPPER_QUALIFIED),
             Map.entry(Camel.class, CAMEL),
@@ -83,12 +83,12 @@ sealed public interface Cases permits
 
     List<String> parse(String name);
 
-    default String to(Cases dest, String name) {
+    default String to(CaseX dest, String name) {
         if (this == dest) return name;
         return dest.format(parse(name));
     }
 
-    final class Raw implements Cases {
+    final class Raw implements CaseX {
 
 
         @Override
@@ -107,7 +107,7 @@ sealed public interface Cases permits
     /**
      * lowerCaseWords
      */
-    final class Camel implements Cases {
+    final class Camel implements CaseX {
 
 
         @Override
@@ -138,7 +138,7 @@ sealed public interface Cases permits
     /**
      * UpperCaseWords
      */
-    final class Pascal implements Cases {
+    final class Pascal implements CaseX {
 
 
         @Override
@@ -161,14 +161,14 @@ sealed public interface Cases permits
 
         @Override
         public List<String> parse(String name) {
-            return Cases.split(name, "(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+            return CaseX.split(name, "(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
         }
     }
 
     /**
      * UPPER-CASE-WORDS
      */
-    final class UpperKebab implements Cases {
+    final class UpperKebab implements CaseX {
 
         static final Pattern pattern = Pattern.compile("(?:\\p{Alnum}|(?:(?<=\\p{Alnum})-(?=\\p{Alnum})))*");
 
@@ -191,14 +191,14 @@ sealed public interface Cases permits
             if (!pattern.matcher(name).matches()) {
                 throw new IllegalArgumentException("Invalid kebab case:" + name);
             }
-            return Cases.split(name, "\\-");
+            return CaseX.split(name, "\\-");
         }
     }
 
     /**
      * lower-case-words
      */
-    final class Kebab implements Cases {
+    final class Kebab implements CaseX {
         @Override
         public String format(Iterable<String> words) {
             var sb = new StringBuilder();
@@ -222,7 +222,7 @@ sealed public interface Cases permits
     /**
      * UPPER_CASE_WORDS
      */
-    final class UpperSnake implements Cases {
+    final class UpperSnake implements CaseX {
         static final Pattern pattern = Pattern.compile("(?:\\p{Alnum}|(?:(?<=\\p{Alnum})_(?=\\p{Alnum})))*");
 
         @Override
@@ -244,14 +244,14 @@ sealed public interface Cases permits
             if (!pattern.matcher(name).matches()) {
                 throw new IllegalArgumentException("Invalid snake case:" + name);
             }
-            return Cases.split(name, "\\_");
+            return CaseX.split(name, "\\_");
         }
     }
 
     /**
      * lower_case_words
      */
-    final class Snake implements Cases {
+    final class Snake implements CaseX {
         @Override
         public String format(Iterable<String> words) {
             var sb = new StringBuilder();
@@ -275,7 +275,7 @@ sealed public interface Cases permits
     /**
      * any.Case.words
      */
-    final class Qualified implements Cases {
+    final class Qualified implements CaseX {
         static final Pattern pattern = Pattern.compile("(?:\\p{Alnum}|(?:(?<=\\p{Alnum})\\.(?=\\p{Alnum})))*");
 
         @Override
@@ -305,7 +305,7 @@ sealed public interface Cases permits
     /**
      * lower.case.words
      */
-    final class LowerQualified implements Cases {
+    final class LowerQualified implements CaseX {
 
 
         @Override
@@ -332,7 +332,7 @@ sealed public interface Cases permits
     /**
      * UPPER.CASE.WORDS
      */
-    final class UpperQualified implements Cases {
+    final class UpperQualified implements CaseX {
         @Override
         public String format(Iterable<String> words) {
             var sb = new StringBuilder();
@@ -354,11 +354,11 @@ sealed public interface Cases permits
 
     }
 
-    UnaryOperator<String> cam2pas = s -> Cases.CAMEL.to(Cases.PASCAL, s);
-    UnaryOperator<String> pas2cam = s -> Cases.PASCAL.to(Cases.CAMEL, s);
-    UnaryOperator<String> cam2snk = s -> Cases.CAMEL.to(Cases.SNAKE, s);
-    UnaryOperator<String> cam2scn = s -> Cases.CAMEL.to(Cases.UPPER_SNAKE, s);
-    UnaryOperator<String> usn2cam = s -> Cases.UPPER_SNAKE.to(Cases.CAMEL, s);
-    UnaryOperator<String> usn2pas = s -> Cases.UPPER_SNAKE.to(Cases.PASCAL, s);
+    UnaryOperator<String> cam2pas = s -> CaseX.CAMEL.to(CaseX.PASCAL, s);
+    UnaryOperator<String> pas2cam = s -> CaseX.PASCAL.to(CaseX.CAMEL, s);
+    UnaryOperator<String> cam2snk = s -> CaseX.CAMEL.to(CaseX.SNAKE, s);
+    UnaryOperator<String> cam2scn = s -> CaseX.CAMEL.to(CaseX.UPPER_SNAKE, s);
+    UnaryOperator<String> usn2cam = s -> CaseX.UPPER_SNAKE.to(CaseX.CAMEL, s);
+    UnaryOperator<String> usn2pas = s -> CaseX.UPPER_SNAKE.to(CaseX.PASCAL, s);
 
 }

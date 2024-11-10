@@ -5,6 +5,6 @@ package cn.zenliu.vax.common.trait;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface Identified {
+public interface XIdentified {
     long id();
 }

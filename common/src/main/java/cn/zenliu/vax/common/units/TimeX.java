@@ -13,10 +13,10 @@ import java.time.temporal.Temporal;
  * @author Zen.Liu
  * @since 2024-11-02
  */
-public interface ITime {
+public interface TimeX {
     Temporal toTime();
 
-    record Time(int value) implements ITime {
+    record Time(int value) implements TimeX {
         public Time() {
             this(time(null));
         }
@@ -26,7 +26,7 @@ public interface ITime {
         }
     }
 
-    record Date(int value) implements ITime {
+    record Date(int value) implements TimeX {
         public Date() {
             this(date(null));
         }
@@ -35,7 +35,7 @@ public interface ITime {
         }
     }
 
-    record Datetime(long value) implements ITime {
+    record Datetime(long value) implements TimeX {
         public Datetime() {
             this(datetime(null));
         }

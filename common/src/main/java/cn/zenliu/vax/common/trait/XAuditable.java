@@ -6,7 +6,7 @@ package cn.zenliu.vax.common.trait;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface Auditable {
+public interface XAuditable {
     long creator();
     /**
      * timestamp value

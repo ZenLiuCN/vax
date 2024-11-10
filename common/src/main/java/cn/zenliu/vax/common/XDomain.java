@@ -9,14 +9,14 @@ import java.util.List;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface Dominator extends Activity {
+public interface XDomain extends XActivity {
     @Override
-    Class<? extends Dominator> $type();
+    Class<? extends XDomain> $type();
 
     /**
      * other dom this is requiring.
      */
-    default List<Class<? extends Dominator>> $requires() {
+    default List<Class<? extends XDomain>> $dependencies() {
         return List.of();
     }
 }
