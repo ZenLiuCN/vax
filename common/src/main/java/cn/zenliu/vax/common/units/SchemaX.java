@@ -16,6 +16,12 @@ public interface SchemaX<E extends XElement> {
 
     Map<String, JsonObjectAccessor<? super Object>> $properties();
 
+    default JsonObject $copyProperties(JsonObject v) {
+        var o = JsonObject.of();
+        $properties().keySet().forEach((k) -> o.put(k, v.getValue(k)));
+        return o;
+    }
+
     @SuppressWarnings("unchecked")
     default <T> Optional<T> $get(JsonObject o, String property) {
         var acc = $properties().get(property);
