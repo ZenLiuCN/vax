@@ -14,4 +14,10 @@
     </properties>
     <artifactId>vax-codegen</artifactId>
     <description>code generator</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.github.zenliucn.vax</groupId>
+            <artifactId>vax-common</artifactId>
+        </dependency>
+    </dependencies>
 </project>

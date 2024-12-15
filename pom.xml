@@ -58,9 +58,9 @@
         <!--//endregion -->
         <!--//region Components -->
         <versions.pdfbox>3.0.2</versions.pdfbox>
-        <versions.vertx>4.5.10</versions.vertx>
+        <versions.vertx>4.5.11</versions.vertx>
         <!-- !! must same as vertx required version-->
-        <versions.vertx-netty>4.1.111.Final</versions.vertx-netty>
+        <versions.vertx-netty>4.1.115.Final</versions.vertx-netty>
         <versions.micrometer>1.12.4</versions.micrometer>
         <versions.vertx-opentelemetry>1.18.0</versions.vertx-opentelemetry>
         <versions.jool>0.9.15</versions.jool>
@@ -74,7 +74,7 @@
         <release.version>${project.version}</release.version>
         <module.name>stack</module.name>
         <launcher.class>io.vertx.core.Launcher</launcher.class>
-        <launcher.verticle>com.medtreehealth.vertx.core.verticle.AutoLauncher</launcher.verticle>
+        <launcher.verticle>AutoLauncher</launcher.verticle>
     </properties>
     <groupId>io.github.zenliucn.vax</groupId>
     <artifactId>vax-stack</artifactId>
@@ -364,7 +364,21 @@
             </dependency>
             <!--//endregion -->
             <!--//region BOM -->
-
+            <dependency>
+                <groupId>io.github.zenliucn.vax</groupId>
+                <artifactId>vax-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.zenliucn.vax</groupId>
+                <artifactId>vax-codegen</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.zenliucn.vax</groupId>
+                <artifactId>vax-query</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!--//endregion -->
         </dependencies>
     </dependencyManagement>
