@@ -1,4 +1,4 @@
-package vax.common.modifier;
+package vax.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
