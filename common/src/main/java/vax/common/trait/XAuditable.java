@@ -1,5 +1,7 @@
 package vax.common.trait;
 
+import io.vertx.core.json.JsonObject;
+
 import java.time.Instant;
 
 /**
@@ -9,17 +11,28 @@ import java.time.Instant;
  * @since 2024-10-01
  */
 public interface XAuditable {
-    long creator();
+    String FIELD_CREATED_BY_$I64 = "createdBy";
+    String FIELD_CREATED_AT_$_1Instant = "createdAt";
+    String FIELD_MODIFIED_BY_$I64  = "modifiedBy";
+    String FIELD_MODIFIED_AT_$_1Instant = "modifiedAt";
+   static JsonObject purify(JsonObject j){
+       j.remove(XAuditable.FIELD_CREATED_BY_$I64);
+       j.remove(XAuditable.FIELD_CREATED_AT_$_1Instant);
+       j.remove(XAuditable.FIELD_MODIFIED_BY_$I64);
+       j.remove(XAuditable.FIELD_MODIFIED_AT_$_1Instant);
+       return j;
+    }
+    long createdBy();
 
     /**
      * timestamp value
      */
-    Instant created();
+    Instant createdAt();
 
-    long editor();
+    long modifiedBy();
 
     /**
      * timestamp value
      */
-    Instant edited();
+    Instant modifiedAt();
 }
