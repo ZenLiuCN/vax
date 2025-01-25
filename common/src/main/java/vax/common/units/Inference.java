@@ -78,7 +78,7 @@ public interface Inference {
                 case SUFFIX_F32 -> float.class;
                 case SUFFIX_F64 -> double.class;
                 default -> switch (type.charAt(0)) {
-                    case TYPE_ARRAY -> Reflect.array(resolve(type.substring(1)));
+                    case TYPE_ARRAY -> Introspect.array(resolve(type.substring(1)));
                     case TYPE_PKG -> {
                         var x = 0;
                         var i = 1;
@@ -89,9 +89,9 @@ public interface Inference {
                         }
                         var pkg = PACKAGES.get(x);
                         if (pkg == null) throw new IllegalStateException("missing package in registry of " + x);
-                        yield Reflect.forName(pkg + '.' + type.substring(i).replaceAll("_", "."));
+                        yield Introspect.forName(pkg + '.' + type.substring(i).replaceAll("_", "."));
                     }
-                    default -> Reflect.forName(type.substring(1).replaceAll("_", "."));
+                    default -> Introspect.forName(type.substring(1).replaceAll("_", "."));
                 };
             };
         }
