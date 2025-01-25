@@ -65,6 +65,7 @@
         <versions.vertx-opentelemetry>1.18.0</versions.vertx-opentelemetry>
         <versions.jool>0.9.15</versions.jool>
         <versions.jackson>2.16.1</versions.jackson>
+        <versions.javapoet>1.13.0</versions.javapoet>
         <versions.compile-testing>0.21.0</versions.compile-testing>
         <versions.logback-classic>1.5.3</versions.logback-classic>
         <versions.caffeine>3.1.8</versions.caffeine>
@@ -83,13 +84,6 @@
     <dependencyManagement>
         <dependencies>
             <!--//region Processor -->
-            <!-- <dependency>
-                 <groupId>org.immutables</groupId>
-                 <artifactId>bom</artifactId>
-                 <version>${versions.immutables}</version>
-                 <scope>import</scope>
-                 <type>pom</type>
-             </dependency>-->
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
@@ -102,26 +96,6 @@
                 <optional>true</optional>
                 <version>${versions.lombok}</version>
             </dependency>
-            <!--  <dependency>
-                  <groupId>org.mapstruct</groupId>
-                  <artifactId>mapstruct-processor</artifactId>
-                  <version>${versions.mapstruct}</version>
-                  <optional>true</optional>
-              </dependency>
-              <dependency>
-                  <groupId>org.mapstruct</groupId>
-                  <artifactId>mapstruct</artifactId>
-                  <version>${versions.mapstruct}</version>
-                  <optional>true</optional>
-              </dependency>
-              <dependency>
-                  <groupId>org.projectlombok</groupId>
-                  <artifactId>lombok-mapstruct-binding</artifactId>
-                  <version>${versions.lombok-mapstruct}</version>
-                  <optional>true</optional>
-                  <scope>provided</scope>
-              </dependency>
-              -->
             <dependency>
                 <groupId>com.google.auto.service</groupId>
                 <artifactId>auto-service</artifactId>
@@ -138,11 +112,6 @@
             </dependency>
             <!--//endregion -->
             <!--//region utilities -->
-            <dependency>
-                <groupId>one.util</groupId>
-                <artifactId>streamex</artifactId>
-                <version>${versions.streamex}</version>
-            </dependency>
             <dependency>
                 <groupId>org.jooq</groupId>
                 <artifactId>jool</artifactId>

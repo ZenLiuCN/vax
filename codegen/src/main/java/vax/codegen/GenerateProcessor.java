@@ -4,7 +4,6 @@ import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
@@ -18,8 +17,8 @@ import java.util.stream.Collectors;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-@AutoService(Processor.class)
-public class AptLoader extends AbstractProcessor {
+@AutoService(javax.annotation.processing.Processor.class)
+public class GenerateProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedOptions() {
         return Set.of("debug");
@@ -38,11 +37,11 @@ public class AptLoader extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-    final List<APT> apt = ServiceLoader.load(APT.class)
-            .stream().map(ServiceLoader.Provider::get)
-            .distinct()
-            .sorted(Comparator.comparing(APT::order))
-            .toList();
+    final List<Processor> apt = ServiceLoader.load(Processor.class)
+                                             .stream().map(ServiceLoader.Provider::get)
+                                             .distinct()
+                                             .sorted(Comparator.comparing(Processor::order))
+                                             .toList();
     private volatile ProcessingEnvironment processingEnv;
 
     @Override
@@ -53,8 +52,8 @@ public class AptLoader extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         var skip = true;
-        for (APT proc : apt) {
-            skip = skip && proc.handle(skip, new APT.Unit(processingEnv, roundEnvironment), set);
+        for (Processor proc : apt) {
+            skip = skip && proc.handle(skip, new Util(processingEnv, roundEnvironment), set);
         }
         return skip;
     }
