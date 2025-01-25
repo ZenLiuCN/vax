@@ -1,6 +1,6 @@
 package vax.common;
 
-import vax.common.trait.XAuditable;
+import vax.common.trait.Auditable;
 
 /**
  * Persis is a group of data that will be persisted.
@@ -8,7 +8,7 @@ import vax.common.trait.XAuditable;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XPersis extends XEntry, XAuditable {
+public interface Persis extends Entry, Auditable {
     @Override
-    Class<? extends XPersis> $type();
+    Class<? extends Persis> $type();
 }

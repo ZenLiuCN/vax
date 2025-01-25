@@ -6,7 +6,7 @@ package vax.common;
  * @author Zen.Liu
  * @since 2024-11-10
  */
-public interface XFunc extends XElement {
+public interface Func extends Element {
     @Override
-    Class<? extends XFunc> $type();
+    Class<? extends Func> $type();
 }

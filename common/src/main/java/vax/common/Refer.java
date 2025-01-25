@@ -7,9 +7,9 @@ package vax.common;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XRefer extends XEntry {
+public interface Refer extends Entry {
     @Override
-    Class<? extends XRefer> $type();
+    Class<? extends Refer> $type();
 
 
 }

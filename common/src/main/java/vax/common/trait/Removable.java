@@ -8,11 +8,11 @@ import io.vertx.core.json.JsonObject;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XRemovable {
+public interface Removable extends Fields {
     String FIELD_REMOVED_$BOOL = "removed";
 
     static JsonObject purify(JsonObject j) {
-        j.remove(XRemovable.FIELD_REMOVED_$BOOL);
+        j.remove(Removable.FIELD_REMOVED_$BOOL);
         return j;
     }
 

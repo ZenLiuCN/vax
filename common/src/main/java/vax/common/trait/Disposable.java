@@ -9,6 +9,6 @@ import io.vertx.core.Future;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XDisposable {
+public interface Disposable {
     Future<Void> dispose();
 }

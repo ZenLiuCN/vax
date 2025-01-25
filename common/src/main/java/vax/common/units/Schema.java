@@ -1,7 +1,7 @@
 package vax.common.units;
 
-import vax.common.XElement;
-import vax.common.units.FunctorX.JsonObjectAccessor;
+import vax.common.Element;
+import vax.common.units.Functor.JsonObjectAccessor;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author Zen.Liu
  * @since 2024-11-10
  */
-public interface SchemaX<E extends XElement> {
+public interface Schema<E extends Element> {
     Class<E> $type();
 
     Map<String, JsonObjectAccessor<? super Object>> $properties();

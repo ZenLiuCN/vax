@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XIdentified {
+public interface Identified extends Fields {
     String FIELD_ID_$_0Long = "id";
 
     static JsonObject purify(JsonObject j) {

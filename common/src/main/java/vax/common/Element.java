@@ -6,6 +6,6 @@ package vax.common;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XElement {
-    Class<? extends XElement> $type();
+public interface Element {
+    Class<? extends Element> $type();
 }

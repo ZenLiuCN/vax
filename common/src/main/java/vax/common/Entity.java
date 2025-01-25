@@ -6,7 +6,7 @@ package vax.common;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XEntity extends XPersis {
+public interface Entity extends Persis {
     @Override
-    Class<? extends XEntity> $type();
+    Class<? extends Entity> $type();
 }

@@ -28,20 +28,20 @@ import java.util.function.Function;
  * @author Zen.Liu
  * @since 2024-10-13
  */
-public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
-    static BinaryX of(Buffer buffer) {
+public sealed interface Binary extends Buffer permits Binary.Impl {
+    static Binary of(Buffer buffer) {
         return new Impl(buffer);
     }
 
-    static BinaryX of(byte[] buffer) {
+    static Binary of(byte[] buffer) {
         return new Impl(Buffer.buffer(buffer));
     }
 
-    static BinaryX of(int capacity) {
+    static Binary of(int capacity) {
         return new Impl(Buffer.buffer(capacity));
     }
 
-    static BinaryX of() {
+    static Binary of() {
         return new Impl(Buffer.buffer());
     }
 
@@ -67,7 +67,7 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
 
     int pos();
 
-    record Impl(Buffer $raw, AtomicInteger $p) implements BinaryX {
+    record Impl(Buffer $raw, AtomicInteger $p) implements Binary {
         Impl(Buffer $raw) {
             this($raw, new AtomicInteger());
         }
@@ -219,25 +219,25 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         }
 
         @Override
-        public BinaryX getBytes(byte[] dst) {
+        public Binary getBytes(byte[] dst) {
             $raw.getBytes(dst);
             return this;
         }
 
         @Override
-        public BinaryX getBytes(byte[] dst, int dstIndex) {
+        public Binary getBytes(byte[] dst, int dstIndex) {
             $raw.getBytes(dst, dstIndex);
             return this;
         }
 
         @Override
-        public BinaryX getBytes(int start, int end, byte[] dst) {
+        public Binary getBytes(int start, int end, byte[] dst) {
             $raw.getBytes(start, end, dst);
             return this;
         }
 
         @Override
-        public BinaryX getBytes(int start, int end, byte[] dst, int dstIndex) {
+        public Binary getBytes(int start, int end, byte[] dst, int dstIndex) {
             $raw.getBytes(start, end, dst, dstIndex);
             return this;
         }
@@ -258,271 +258,271 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         }
 
         @Override
-        public BinaryX appendBuffer(Buffer buff) {
+        public Binary appendBuffer(Buffer buff) {
             $raw.appendBuffer(buff);
             return this;
         }
 
         @Override
-        public BinaryX appendBuffer(Buffer buff, int offset, int len) {
+        public Binary appendBuffer(Buffer buff, int offset, int len) {
             $raw.appendBuffer(buff, offset, len);
             return this;
         }
 
         @Override
-        public BinaryX appendBytes(byte[] bytes) {
+        public Binary appendBytes(byte[] bytes) {
             $raw.appendBytes(bytes);
             return this;
         }
 
         @Override
-        public BinaryX appendBytes(byte[] bytes, int offset, int len) {
+        public Binary appendBytes(byte[] bytes, int offset, int len) {
             $raw.appendBytes(bytes, offset, len);
             return this;
         }
 
         @Override
-        public BinaryX appendByte(byte b) {
+        public Binary appendByte(byte b) {
             $raw.appendByte(b);
             return this;
         }
 
         @Override
-        public BinaryX appendUnsignedByte(short b) {
+        public Binary appendUnsignedByte(short b) {
             $raw.appendUnsignedByte(b);
             return this;
         }
 
         @Override
-        public BinaryX appendInt(int i) {
+        public Binary appendInt(int i) {
             $raw.appendInt(i);
             return this;
         }
 
         @Override
-        public BinaryX appendIntLE(int i) {
+        public Binary appendIntLE(int i) {
             $raw.appendIntLE(i);
             return this;
         }
 
         @Override
-        public BinaryX appendUnsignedInt(long i) {
+        public Binary appendUnsignedInt(long i) {
             $raw.appendUnsignedInt(i);
             return this;
         }
 
         @Override
-        public BinaryX appendUnsignedIntLE(long i) {
+        public Binary appendUnsignedIntLE(long i) {
             $raw.appendUnsignedIntLE(i);
             return this;
         }
 
         @Override
-        public BinaryX appendMedium(int i) {
+        public Binary appendMedium(int i) {
             $raw.appendMedium(i);
             return this;
         }
 
         @Override
-        public BinaryX appendMediumLE(int i) {
+        public Binary appendMediumLE(int i) {
             $raw.appendMediumLE(i);
             return this;
         }
 
         @Override
-        public BinaryX appendLong(long l) {
+        public Binary appendLong(long l) {
             $raw.appendLong(l);
             return this;
         }
 
         @Override
-        public BinaryX appendLongLE(long l) {
+        public Binary appendLongLE(long l) {
             $raw.appendLongLE(l);
             return this;
         }
 
         @Override
-        public BinaryX appendShort(short s) {
+        public Binary appendShort(short s) {
             $raw.appendShort(s);
             return this;
         }
 
         @Override
-        public BinaryX appendShortLE(short s) {
+        public Binary appendShortLE(short s) {
             $raw.appendShortLE(s);
             return this;
         }
 
         @Override
-        public BinaryX appendUnsignedShort(int s) {
+        public Binary appendUnsignedShort(int s) {
             $raw.appendUnsignedShort(s);
             return this;
         }
 
         @Override
-        public BinaryX appendUnsignedShortLE(int s) {
+        public Binary appendUnsignedShortLE(int s) {
             $raw.appendUnsignedShortLE(s);
             return this;
         }
 
         @Override
-        public BinaryX appendFloat(float f) {
+        public Binary appendFloat(float f) {
             $raw.appendFloat(f);
             return this;
         }
 
         @Override
-        public BinaryX appendDouble(double d) {
+        public Binary appendDouble(double d) {
             $raw.appendDouble(d);
             return this;
         }
 
         @Override
-        public BinaryX appendString(String str, String enc) {
+        public Binary appendString(String str, String enc) {
             $raw.appendString(str, enc);
             return this;
         }
 
         @Override
-        public BinaryX appendString(String str) {
+        public Binary appendString(String str) {
             $raw.appendString(str);
             return this;
         }
 
         @Override
-        public BinaryX setByte(int pos, byte b) {
+        public Binary setByte(int pos, byte b) {
             $raw.setByte(pos, b);
             return this;
         }
 
         @Override
-        public BinaryX setUnsignedByte(int pos, short b) {
+        public Binary setUnsignedByte(int pos, short b) {
             $raw.setUnsignedByte(pos, b);
             return this;
         }
 
         @Override
-        public BinaryX setInt(int pos, int i) {
+        public Binary setInt(int pos, int i) {
             $raw.setInt(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setIntLE(int pos, int i) {
+        public Binary setIntLE(int pos, int i) {
             $raw.setIntLE(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setUnsignedInt(int pos, long i) {
+        public Binary setUnsignedInt(int pos, long i) {
             $raw.setUnsignedInt(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setUnsignedIntLE(int pos, long i) {
+        public Binary setUnsignedIntLE(int pos, long i) {
             $raw.setUnsignedIntLE(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setMedium(int pos, int i) {
+        public Binary setMedium(int pos, int i) {
             $raw.setMedium(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setMediumLE(int pos, int i) {
+        public Binary setMediumLE(int pos, int i) {
             $raw.setMediumLE(pos, i);
             return this;
         }
 
         @Override
-        public BinaryX setLong(int pos, long l) {
+        public Binary setLong(int pos, long l) {
             $raw.setLong(pos, l);
             return this;
         }
 
         @Override
-        public BinaryX setLongLE(int pos, long l) {
+        public Binary setLongLE(int pos, long l) {
             $raw.setLongLE(pos, l);
             return this;
         }
 
         @Override
-        public BinaryX setDouble(int pos, double d) {
+        public Binary setDouble(int pos, double d) {
             $raw.setDouble(pos, d);
             return this;
         }
 
         @Override
-        public BinaryX setFloat(int pos, float f) {
+        public Binary setFloat(int pos, float f) {
             $raw.setFloat(pos, f);
             return this;
         }
 
         @Override
-        public BinaryX setShort(int pos, short s) {
+        public Binary setShort(int pos, short s) {
             $raw.setShort(pos, s);
             return this;
         }
 
         @Override
-        public BinaryX setShortLE(int pos, short s) {
+        public Binary setShortLE(int pos, short s) {
             $raw.setShortLE(pos, s);
             return this;
         }
 
         @Override
-        public BinaryX setUnsignedShort(int pos, int s) {
+        public Binary setUnsignedShort(int pos, int s) {
             $raw.setUnsignedShort(pos, s);
             return this;
         }
 
         @Override
-        public BinaryX setUnsignedShortLE(int pos, int s) {
+        public Binary setUnsignedShortLE(int pos, int s) {
             $raw.setUnsignedShortLE(pos, s);
             return this;
         }
 
         @Override
-        public BinaryX setBuffer(int pos, Buffer b) {
+        public Binary setBuffer(int pos, Buffer b) {
             $raw.setBuffer(pos, b);
             return this;
         }
 
         @Override
-        public BinaryX setBuffer(int pos, Buffer b, int offset, int len) {
+        public Binary setBuffer(int pos, Buffer b, int offset, int len) {
             $raw.setBuffer(pos, b, offset, len);
             return this;
         }
 
         @Override
-        public BinaryX setBytes(int pos, ByteBuffer b) {
+        public Binary setBytes(int pos, ByteBuffer b) {
             $raw.setBytes(pos, b);
             return this;
         }
 
         @Override
-        public BinaryX setBytes(int pos, byte[] b) {
+        public Binary setBytes(int pos, byte[] b) {
             $raw.setBytes(pos, b);
             return this;
         }
 
         @Override
-        public BinaryX setBytes(int pos, byte[] b, int offset, int len) {
+        public Binary setBytes(int pos, byte[] b, int offset, int len) {
             $raw.setBytes(pos, b, offset, len);
             return this;
         }
 
         @Override
-        public BinaryX setString(int pos, String str) {
+        public Binary setString(int pos, String str) {
             $raw.setString(pos, str);
             return this;
         }
 
         @Override
-        public BinaryX setString(int pos, String str, String enc) {
+        public Binary setString(int pos, String str, String enc) {
             $raw.setString(pos, str, enc);
             return this;
         }
@@ -533,17 +533,17 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         }
 
         @Override
-        public BinaryX copy() {
+        public Binary copy() {
             return new Impl($raw.copy());
         }
 
         @Override
-        public BinaryX slice() {
+        public Binary slice() {
             return new Impl($raw.slice());
         }
 
         @Override
-        public BinaryX slice(int start, int end) {
+        public Binary slice(int start, int end) {
             return new Impl($raw.slice(start, end));
         }
 
@@ -567,161 +567,161 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
 
     //region Fluent
     @Override
-    BinaryX getBytes(byte[] dst);
+    Binary getBytes(byte[] dst);
 
     @Override
-    BinaryX getBytes(byte[] dst, int dstIndex);
+    Binary getBytes(byte[] dst, int dstIndex);
 
     @Override
-    BinaryX getBytes(int start, int end, byte[] dst);
+    Binary getBytes(int start, int end, byte[] dst);
 
     @Override
-    BinaryX getBytes(int start, int end, byte[] dst, int dstIndex);
+    Binary getBytes(int start, int end, byte[] dst, int dstIndex);
 
 
     @Override
-    BinaryX appendBuffer(Buffer buff);
+    Binary appendBuffer(Buffer buff);
 
     @Override
-    BinaryX appendBuffer(Buffer buff, int offset, int len);
+    Binary appendBuffer(Buffer buff, int offset, int len);
 
     @Override
-    BinaryX appendBytes(byte[] bytes);
+    Binary appendBytes(byte[] bytes);
 
     @Override
-    BinaryX appendBytes(byte[] bytes, int offset, int len);
+    Binary appendBytes(byte[] bytes, int offset, int len);
 
     @Override
-    BinaryX appendByte(byte b);
+    Binary appendByte(byte b);
 
     @Override
-    BinaryX appendUnsignedByte(short b);
+    Binary appendUnsignedByte(short b);
 
     @Override
-    BinaryX appendInt(int i);
+    Binary appendInt(int i);
 
     @Override
-    BinaryX appendIntLE(int i);
+    Binary appendIntLE(int i);
 
     @Override
-    BinaryX appendUnsignedInt(long i);
+    Binary appendUnsignedInt(long i);
 
     @Override
-    BinaryX appendUnsignedIntLE(long i);
+    Binary appendUnsignedIntLE(long i);
 
     @Override
-    BinaryX appendMedium(int i);
+    Binary appendMedium(int i);
 
     @Override
-    BinaryX appendMediumLE(int i);
+    Binary appendMediumLE(int i);
 
     @Override
-    BinaryX appendLong(long l);
+    Binary appendLong(long l);
 
     @Override
-    BinaryX appendLongLE(long l);
+    Binary appendLongLE(long l);
 
     @Override
-    BinaryX appendShort(short s);
+    Binary appendShort(short s);
 
     @Override
-    BinaryX appendShortLE(short s);
+    Binary appendShortLE(short s);
 
     @Override
-    BinaryX appendUnsignedShort(int s);
+    Binary appendUnsignedShort(int s);
 
     @Override
-    BinaryX appendUnsignedShortLE(int s);
+    Binary appendUnsignedShortLE(int s);
 
     @Override
-    BinaryX appendFloat(float f);
+    Binary appendFloat(float f);
 
     @Override
-    BinaryX appendDouble(double d);
+    Binary appendDouble(double d);
 
     @Override
-    BinaryX appendString(String str, String enc);
+    Binary appendString(String str, String enc);
 
     @Override
-    BinaryX appendString(String str);
+    Binary appendString(String str);
 
     @Override
-    BinaryX setByte(int pos, byte b);
+    Binary setByte(int pos, byte b);
 
     @Override
-    BinaryX setUnsignedByte(int pos, short b);
+    Binary setUnsignedByte(int pos, short b);
 
     @Override
-    BinaryX setInt(int pos, int i);
+    Binary setInt(int pos, int i);
 
     @Override
-    BinaryX setIntLE(int pos, int i);
+    Binary setIntLE(int pos, int i);
 
     @Override
-    BinaryX setUnsignedInt(int pos, long i);
+    Binary setUnsignedInt(int pos, long i);
 
     @Override
-    BinaryX setUnsignedIntLE(int pos, long i);
+    Binary setUnsignedIntLE(int pos, long i);
 
     @Override
-    BinaryX setMedium(int pos, int i);
+    Binary setMedium(int pos, int i);
 
     @Override
-    BinaryX setMediumLE(int pos, int i);
+    Binary setMediumLE(int pos, int i);
 
     @Override
-    BinaryX setLong(int pos, long l);
+    Binary setLong(int pos, long l);
 
     @Override
-    BinaryX setLongLE(int pos, long l);
+    Binary setLongLE(int pos, long l);
 
     @Override
-    BinaryX setDouble(int pos, double d);
+    Binary setDouble(int pos, double d);
 
     @Override
-    BinaryX setFloat(int pos, float f);
+    Binary setFloat(int pos, float f);
 
     @Override
-    BinaryX setShort(int pos, short s);
+    Binary setShort(int pos, short s);
 
     @Override
-    BinaryX setShortLE(int pos, short s);
+    Binary setShortLE(int pos, short s);
 
     @Override
-    BinaryX setUnsignedShort(int pos, int s);
+    Binary setUnsignedShort(int pos, int s);
 
     @Override
-    BinaryX setUnsignedShortLE(int pos, int s);
+    Binary setUnsignedShortLE(int pos, int s);
 
     @Override
-    BinaryX setBuffer(int pos, Buffer b);
+    Binary setBuffer(int pos, Buffer b);
 
     @Override
-    BinaryX setBuffer(int pos, Buffer b, int offset, int len);
+    Binary setBuffer(int pos, Buffer b, int offset, int len);
 
     @Override
-    BinaryX setBytes(int pos, ByteBuffer b);
+    Binary setBytes(int pos, ByteBuffer b);
 
     @Override
-    BinaryX setBytes(int pos, byte[] b);
+    Binary setBytes(int pos, byte[] b);
 
     @Override
-    BinaryX setBytes(int pos, byte[] b, int offset, int len);
+    Binary setBytes(int pos, byte[] b, int offset, int len);
 
     @Override
-    BinaryX setString(int pos, String str);
+    Binary setString(int pos, String str);
 
     @Override
-    BinaryX setString(int pos, String str, String enc);
+    Binary setString(int pos, String str, String enc);
 
     @Override
-    BinaryX copy();
+    Binary copy();
 
     @Override
-    BinaryX slice();
+    Binary slice();
 
     @Override
-    BinaryX slice(int start, int end);
+    Binary slice(int start, int end);
     //endregion
 
     /**
@@ -735,156 +735,156 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
     /**
      * write boolean as  one byte
      */
-    default BinaryX b(boolean b) {
+    default Binary b(boolean b) {
         return appendByte((byte) (b ? 1 : -1));
     }
 
     /**
      * read one byte
      */
-    default byte i1() {
+    default byte i8() {
         return getByte($pos());
     }
 
-    default BinaryX i1(byte b) {
+    default Binary i8(byte b) {
         return appendByte(b);
     }
 
     /**
      * read two byte as short
      */
-    default short i2() {
+    default short i16() {
         return getShort($pos(2));
     }
 
-    default BinaryX i2(short b) {
+    default Binary i16(short b) {
         return appendShort(b);
     }
 
     /**
      * read four byte as int
      */
-    default int i4() {
+    default int i32() {
         return getInt($pos(4));
     }
 
-    default BinaryX i4(int b) {
+    default Binary i32(int b) {
         return appendInt(b);
     }
 
     /**
      * read eight byte as long int
      */
-    default long i8() {
+    default long i64() {
         return getLong($pos(8));
     }
 
-    default BinaryX i8(long b) {
+    default Binary i64(long b) {
         return appendLong(b);
     }
 
     /**
      * read four byte as float
      */
-    default float f4() {
+    default float f32() {
         return getFloat($pos(4));
     }
 
-    default BinaryX f4(float b) {
+    default Binary f32(float b) {
         return appendFloat(b);
     }
 
     /**
      * read eight byte as double float
      */
-    default double f8() {
+    default double f64() {
         return getDouble($pos(8));
     }
 
-    default BinaryX f8(double b) {
+    default Binary f64(double b) {
         return appendDouble(b);
     }
 
     /**
      * read var int
      */
-    default int v4() {
+    default int v32() {
         var result = 0;
         var shift = 0;
-        var by = i1();
+        var by = i8();
         while (true) {
             result |= (by & 0x7f) << shift;
             if ((by & 0x80) != 0x80) break;
-            by = i1();
+            by = i8();
             shift += 7;
         }
         return result;
     }
 
-    default BinaryX v4(int n) {
+    default Binary v32(int n) {
         while ((n & ~0x7F) != 0) {
-            i1(((byte) ((n & 0x7F) | 0x80)));
+            i8(((byte) ((n & 0x7F) | 0x80)));
             n >>>= 7;
         }
-        return i1((byte) n); //!Last
+        return i8((byte) n); //!Last
     }
 
 
     /**
      * read var long int
      */
-    default long v8() {
+    default long v64() {
         var result = 0L;
         var shift = 0L;
-        var by = i1();
+        var by = i8();
         while (true) {
             result |= (by & 0x7fL) << shift;
             if ((by & 0x80) != 0x80) break;
-            by = i1();
+            by = i8();
             shift += 7L;
         }
         return result;
     }
 
-    default BinaryX v8(long n) {
+    default Binary v64(long n) {
         while ((n & ~0x7FL) != 0) {
-            i1(((byte) ((n & 0x7FL) | 0x80L)));
+            i8(((byte) ((n & 0x7FL) | 0x80L)));
             n >>>= 7;
         }
-        return i1((byte) n); //!Last
+        return i8((byte) n); //!Last
     }
 
     /**
      * read zig-zag var int
      */
-    default int z4() {
-        var v = v4();
+    default int z32() {
+        var v = v32();
         return (v >> 1) ^ -(v & 1);
     }
 
-    default BinaryX z4(int v) {
+    default Binary z32(int v) {
         v = (v << 1) ^ (v >> 31);
-        return v4(v);
+        return v32(v);
     }
 
     /**
      * read zig-zag var long int
      */
-    default long z8() {
-        var v = v8();
+    default long z64() {
+        var v = v64();
         return (v >> 1L) ^ -(v & 1L);
     }
 
-    default BinaryX z8(long v) {
+    default Binary z64(long v) {
         v = (v << 1L) ^ (v >> 63);
-        return v8(v);
+        return v64(v);
     }
 
     /**
      * read size bytes,allow null.
      */
     default byte @Nullable [] bin() {
-        var n = z4();
+        var n = z32();
         if (n < 0) return null;
         var b = new byte[n];
         if (n == 0) return b;
@@ -893,18 +893,18 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         return b;
     }
 
-    default BinaryX bin(byte @Nullable [] n) {
+    default Binary bin(byte @Nullable [] n) {
         if (n == null) {
-            return z4(-1);
+            return z32(-1);
         }
         if (n.length == 0) {
-            return z4(0);
+            return z32(0);
         }
-        return z4(n.length).appendBytes(n);
+        return z32(n.length).appendBytes(n);
     }
 
     default byte[] binary() {
-        var n = v4();
+        var n = v32();
         if (n < 0) throw new IllegalStateException("should not be null");
         var b = new byte[n];
         if (n == 0) return b;
@@ -913,11 +913,11 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         return b;
     }
 
-    default BinaryX binary(byte[] n) {
+    default Binary binary(byte[] n) {
         if (n.length == 0) {
-            return v4(0);
+            return v32(0);
         }
-        return v4(n.length).appendBytes(n);
+        return v32(n.length).appendBytes(n);
     }
 
     /**
@@ -948,27 +948,27 @@ public sealed interface BinaryX extends Buffer permits BinaryX.Impl {
         return new String(b, StandardCharsets.UTF_8);
     }
 
-    default BinaryX str(String v) {
-        if (v == null) return z4(-1);
-        if (v.isBlank()) return z4(0);
+    default Binary str(String v) {
+        if (v == null) return z32(-1);
+        if (v.isBlank()) return z32(0);
         return bin(v.getBytes(StandardCharsets.UTF_8));
     }
 
-    default BinaryX accept(Consumer<BinaryX> act) {
+    default Binary accept(Consumer<Binary> act) {
         act.accept(this);
         return this;
     }
 
-    default <R> R apply(Function<BinaryX, R> act) {
+    default <R> R apply(Function<Binary, R> act) {
         return act.apply(this);
     }
 
-    default <R> R sized(BiFunction<BinaryX, Integer, R> act) {
-        return act.apply(this, v4());
+    default <R> R sized(BiFunction<Binary, Integer, R> act) {
+        return act.apply(this, v32());
     }
 
-    default <R> Optional<R> sizedOpt(BiFunction<BinaryX, Integer, R> act) {
-        var z = z4();
+    default <R> Optional<R> sizedOpt(BiFunction<Binary, Integer, R> act) {
+        var z = z32();
         if (z < 0) return Optional.empty();
         return Optional.of(act.apply(this, z));
     }

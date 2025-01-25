@@ -1,9 +1,9 @@
 package vax.common.units;
 
-import vax.common.units.FunctorX.JsonArrayReader;
-import vax.common.units.FunctorX.JsonArrayWriter;
-import vax.common.units.FunctorX.JsonObjectReader;
-import vax.common.units.FunctorX.JsonObjectWriter;
+import vax.common.units.Functor.JsonArrayReader;
+import vax.common.units.Functor.JsonArrayWriter;
+import vax.common.units.Functor.JsonObjectReader;
+import vax.common.units.Functor.JsonObjectWriter;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
@@ -21,26 +21,26 @@ import java.util.function.Supplier;
  * @author Zen.Liu
  * @since 2024-11-10
  */
-public interface PointerX<J> extends JsonPointer {
-    static PointerX<JsonObject> of(String path, boolean createMissing) {
+public interface Pointer<J> extends JsonPointer {
+    static Pointer<JsonObject> of(String path, boolean createMissing) {
         return new pointer<>(JsonPointer.from(path), createMissing);
     }
 
-    static PointerX<JsonObject> of(JsonPointer p, boolean createMissing) {
-        return p instanceof PointerX<?> x ? x.forObject().withCreateMissing(createMissing) : new pointer<JsonObject>(p, createMissing);
+    static Pointer<JsonObject> of(JsonPointer p, boolean createMissing) {
+        return p instanceof Pointer<?> x ? x.forObject().withCreateMissing(createMissing) : new pointer<JsonObject>(p, createMissing);
     }
 
     @SuppressWarnings("unchecked")
-    default PointerX<JsonObject> forObject() {
-        return (PointerX<JsonObject>) this;
+    default Pointer<JsonObject> forObject() {
+        return (Pointer<JsonObject>) this;
     }
 
     @SuppressWarnings("unchecked")
-    default PointerX<JsonArray> forArray() {
-        return (PointerX<JsonArray>) this;
+    default Pointer<JsonArray> forArray() {
+        return (Pointer<JsonArray>) this;
     }
 
-    PointerX<J> withCreateMissing(boolean createMissing);
+    Pointer<J> withCreateMissing(boolean createMissing);
 
     //region Overrides
     @Override
@@ -94,27 +94,27 @@ public interface PointerX<J> extends JsonPointer {
         return raw().write(objectToWrite, iterator, newElement, createOnMissing);
     }
 
-    default boolean isParent(PointerX<?> child) {
+    default boolean isParent(Pointer<?> child) {
         return raw().isParent(child.raw());
     }
 
     @Override
-    PointerX<J> append(String token);
+    Pointer<J> append(String token);
 
     @Override
-    PointerX<J> append(int index);
+    Pointer<J> append(int index);
 
     @Override
-    PointerX<J> append(List<String> tokens);
+    Pointer<J> append(List<String> tokens);
 
 
-    PointerX<J> append(PointerX<?> pointer);
-
-    @Override
-    PointerX<J> parent();
+    Pointer<J> append(Pointer<?> pointer);
 
     @Override
-    PointerX<J> copy();
+    Pointer<J> parent();
+
+    @Override
+    Pointer<J> copy();
 
     //endregion
     JsonPointer raw();
@@ -403,39 +403,39 @@ public interface PointerX<J> extends JsonPointer {
     }
 
     //endregion
-    record pointer<J>(JsonPointer raw, boolean createMissing) implements PointerX<J> {
+    record pointer<J>(JsonPointer raw, boolean createMissing) implements Pointer<J> {
         @Override
-        public PointerX<J> withCreateMissing(boolean createMissing) {
+        public Pointer<J> withCreateMissing(boolean createMissing) {
             return new pointer<>(raw, createMissing);
         }
 
         //region Delegates
-        public PointerX<J> append(String token) {
+        public Pointer<J> append(String token) {
             return new pointer<>(raw.append(token), createMissing);
         }
 
         @Override
-        public PointerX<J> append(int index) {
+        public Pointer<J> append(int index) {
             return new pointer<>(raw.append(index), createMissing);
         }
 
         @Override
-        public PointerX<J> append(List<String> tokens) {
+        public Pointer<J> append(List<String> tokens) {
             return new pointer<>(raw.append(tokens), createMissing);
         }
 
         @Override
-        public PointerX<J> append(PointerX<?> pointer) {
+        public Pointer<J> append(Pointer<?> pointer) {
             return new pointer<>(raw.append(pointer.raw()), createMissing);
         }
 
         @Override
-        public PointerX<J> parent() {
+        public Pointer<J> parent() {
             return new pointer<>(raw.parent(), createMissing);
         }
 
         @Override
-        public PointerX<J> copy() {
+        public Pointer<J> copy() {
             return new pointer<>(raw.copy(), createMissing);
         }
 

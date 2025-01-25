@@ -2,7 +2,7 @@ package vax.common.units;
 
 import io.vertx.core.json.JsonObject;
 import org.jetbrains.annotations.Nullable;
-import vax.common.trait.XData;
+import vax.common.trait.Data;
 
 import java.time.*;
 import java.time.temporal.Temporal;
@@ -16,7 +16,7 @@ import java.util.function.LongFunction;
  * @author Zen.Liu
  * @since 2024-11-02
  */
-public interface TimeX {
+public interface Times {
     Temporal toTime();
 
 
@@ -71,13 +71,13 @@ public interface TimeX {
         return x * (p ? 1 : -1);
     }
 
-    record Time(int value) implements TimeX, XData.Compatible {
+    record Time(int value) implements Times, Data.Compatible {
         public Time(JsonObject v) {
-            this(JsonX.i32(v, "value"));
+            this(Json.i32(v, "value"));
         }
 
         public Time(JsonObject v, Void unused) {
-            this(JsonX.i32(v, "value"));
+            this(Json.i32(v, "value"));
         }
 
         @Override
@@ -103,13 +103,13 @@ public interface TimeX {
         }
     }
 
-    record Date(int value) implements TimeX, XData.Compatible {
+    record Date(int value) implements Times, Data.Compatible {
         public Date(JsonObject v) {
-            this(JsonX.i32(v, "value"));
+            this(Json.i32(v, "value"));
         }
 
         public Date(JsonObject v, Void unused) {
-            this(JsonX.i32(v, "value"));
+            this(Json.i32(v, "value"));
         }
 
         @Override
@@ -135,13 +135,13 @@ public interface TimeX {
         }
     }
 
-    record Datetime(long value) implements TimeX, XData.Compatible {
+    record Datetime(long value) implements Times, Data.Compatible {
         public Datetime(JsonObject v) {
-            this(JsonX.i64(v, "value"));
+            this(Json.i64(v, "value"));
         }
 
         public Datetime(JsonObject v, Void unused) {
-            this(JsonX.i64j(v, "value"));
+            this(Json.i64j(v, "value"));
         }
 
         @Override
@@ -269,7 +269,7 @@ public interface TimeX {
 
     }
 
-    record Ticker(long value) implements Tickers, TimeX {
+    record Ticker(long value) implements Tickers, Times {
         public Ticker(LocalDateTime d) {
             this(Tickers.ToTicker.apply(d));
         }
@@ -381,7 +381,7 @@ public interface TimeX {
         }
     }
 
-    record Tick(long value) implements Ticks, TimeX {
+    record Tick(long value) implements Ticks, Times {
         public Tick(Instant d) {
             this(Ticks.from(d));
         }

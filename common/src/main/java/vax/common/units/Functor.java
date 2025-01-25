@@ -20,7 +20,7 @@ import java.util.function.IntFunction;
  * @author Zen.Liu
  * @since 2024-11-10
  */
-public interface FunctorX {
+public interface Functor {
     default String $type() {
         return this.getClass().getSimpleName();
     }
@@ -29,22 +29,22 @@ public interface FunctorX {
         return false;
     }
 
-    default Function<JsonObject, FunctorX> $make() {
+    default Function<JsonObject, Functor> $make() {
         throw new UnsupportedOperationException("should have implement");
     }
 
-    static Optional<FunctorX> resolve(String type, JsonObject conf) {
+    static Optional<Functor> resolve(String type, JsonObject conf) {
         return $.resolve(type, conf);
     }
 
     final class $ {
-        static Map<String, Function<JsonObject, FunctorX>> registry;
+        static Map<String, Function<JsonObject, Functor>> registry;
         static final Object init = new Object();
 
-        static Optional<FunctorX> resolve(String type, JsonObject conf) {
+        static Optional<Functor> resolve(String type, JsonObject conf) {
             if (registry == null) {
                 synchronized (init) {
-                    ServiceLoader.load(FunctorX.class)
+                    ServiceLoader.load(Functor.class)
                             .forEach(f -> {
                                 if (f.$factory()) {
                                     registry.put(f.$type(), f.$make());
@@ -56,7 +56,7 @@ public interface FunctorX {
         }
     }
 
-    interface JsonArrayReader<T> extends BiFunction<JsonArray, Integer, T>, FunctorX {
+    interface JsonArrayReader<T> extends BiFunction<JsonArray, Integer, T>, Functor {
         T apply(JsonArray o, int i);
 
         @Override
@@ -66,7 +66,7 @@ public interface FunctorX {
 
     }
 
-    interface JsonArrayWriter<T> extends Consumer3<JsonArray, Integer, T>, FunctorX {
+    interface JsonArrayWriter<T> extends Consumer3<JsonArray, Integer, T>, Functor {
         void accept(JsonArray o, int i, T v);
 
         @Override
@@ -75,12 +75,12 @@ public interface FunctorX {
         }
     }
 
-    interface JsonObjectReader<T> extends BiFunction<JsonObject, String, T>, FunctorX {
+    interface JsonObjectReader<T> extends BiFunction<JsonObject, String, T>, Functor {
         T apply(JsonObject o, String k);
 
     }
 
-    interface JsonObjectWriter<T> extends Consumer3<JsonObject, String, T>, FunctorX {
+    interface JsonObjectWriter<T> extends Consumer3<JsonObject, String, T>, Functor {
         void accept(JsonObject o, String k, T v);
     }
 
@@ -88,7 +88,7 @@ public interface FunctorX {
 
     }
 
-    interface ObjectProperty<T> extends FunctorX {
+    interface ObjectProperty<T> extends Functor {
         @Override
         default boolean $factory() {
             return true;
@@ -97,7 +97,7 @@ public interface FunctorX {
         ObjectProperty<T> $make(String field);
 
         @Override
-        default Function<JsonObject, FunctorX> $make() {
+        default Function<JsonObject, Functor> $make() {
             return c -> $make(c.getString("property"));
         }
 
@@ -150,7 +150,7 @@ public interface FunctorX {
             }
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class ArrayObjectProperty extends Simple<JsonArray> {
             public ArrayObjectProperty() {
                 this("");
@@ -161,7 +161,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class ObjectObjectProperty extends Simple<JsonObject> {
             public ObjectObjectProperty() {
                 this("");
@@ -172,7 +172,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class StringObjectProperty extends Simple<String> {
             public StringObjectProperty() {
                 this("");
@@ -184,7 +184,7 @@ public interface FunctorX {
 
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BooleanObjectProperty extends Simple<Boolean> {
             public BooleanObjectProperty() {
                 this("");
@@ -196,7 +196,7 @@ public interface FunctorX {
 
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Int32ObjectProperty extends Simple<Integer> {
             public Int32ObjectProperty() {
                 this("");
@@ -208,7 +208,7 @@ public interface FunctorX {
 
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Int64ObjectProperty extends Simple<Long> {
             public Int64ObjectProperty() {
                 this("");
@@ -219,7 +219,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Float64ObjectProperty extends Simple<Double> {
             public Float64ObjectProperty() {
                 this("");
@@ -230,7 +230,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Float32ObjectProperty extends Simple<Float> {
             public Float32ObjectProperty() {
                 this("");
@@ -241,7 +241,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BinaryObjectProperty extends Simple<byte[]> {
             public BinaryObjectProperty() {
                 this("");
@@ -252,7 +252,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BlobObjectProperty extends Simple<Buffer> {
             public BlobObjectProperty() {
                 this("");
@@ -263,7 +263,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class InstantObjectProperty extends Simple<Instant> {
             public InstantObjectProperty() {
                 this("");
@@ -276,7 +276,7 @@ public interface FunctorX {
         }
     }
 
-    interface ArrayProperty<T> extends FunctorX {
+    interface ArrayProperty<T> extends Functor {
         @Override
         default boolean $factory() {
             return true;
@@ -285,7 +285,7 @@ public interface FunctorX {
         ArrayProperty<T> $make(int field);
 
         @Override
-        default Function<JsonObject, FunctorX> $make() {
+        default Function<JsonObject, Functor> $make() {
             return c -> $make(c.getInteger("index"));
         }
 
@@ -339,7 +339,7 @@ public interface FunctorX {
             }
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class ArrayArrayProperty extends Simple<JsonArray> {
             public ArrayArrayProperty() {
                 this(-1);
@@ -350,7 +350,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class ObjectArrayProperty extends Simple<JsonObject> {
             public ObjectArrayProperty() {
                 this(-1);
@@ -361,7 +361,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class StringArrayProperty extends Simple<String> {
             public StringArrayProperty() {
                 this(-1);
@@ -372,7 +372,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BooleanArrayProperty extends Simple<Boolean> {
             public BooleanArrayProperty() {
                 this(-1);
@@ -383,7 +383,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Int32ArrayProperty extends Simple<Integer> {
             public Int32ArrayProperty() {
                 this(-1);
@@ -395,7 +395,7 @@ public interface FunctorX {
 
         }
 
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Int64ArrayProperty extends Simple<Long> {
             public Int64ArrayProperty() {
                 this(-1);
@@ -406,7 +406,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Float64ArrayProperty extends Simple<Double> {
             public Float64ArrayProperty() {
                 this(-1);
@@ -417,7 +417,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class Float32ArrayProperty extends Simple<Float> {
             public Float32ArrayProperty() {
                 this(-1);
@@ -428,7 +428,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BinaryArrayProperty extends Simple<byte[]> {
             public BinaryArrayProperty() {
                 this(-1);
@@ -439,7 +439,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class BlobArrayProperty extends Simple<Buffer> {
             public BlobArrayProperty() {
                 this(-1);
@@ -450,7 +450,7 @@ public interface FunctorX {
             }
 
         }
-        @AutoService(FunctorX.class)
+        @AutoService(Functor.class)
         final class InstantArrayProperty extends Simple<Instant> {
             public InstantArrayProperty() {
                 this(-1);

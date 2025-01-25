@@ -5,7 +5,7 @@ package vax.common;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XActor extends XEntry{
+public interface Actor extends Entry {
     @Override
-    Class<? extends XActor> $type();
+    Class<? extends Actor> $type();
 }

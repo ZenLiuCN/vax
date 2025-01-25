@@ -8,7 +8,7 @@ import java.lang.reflect.Array;
  * @author Zen.Liu
  * @since 2025-01-12
  */
-public interface ReflectX {
+public interface Reflect {
     @SuppressWarnings("unchecked")
     @SneakyThrows
     static <T> Class<T> forName(String name) {

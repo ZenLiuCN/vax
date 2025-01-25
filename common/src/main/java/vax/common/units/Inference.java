@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * @author Zen.Liu
  * @since 2025-01-12
  */
-public interface InferenceX {
+public interface Inference {
     record PkgEntry(
             int index,
             String remains
@@ -64,7 +64,7 @@ public interface InferenceX {
             if (i < 0) return Optional.empty();
             var t = fieldName.substring(i + 2);
             if (t.contains(TYPE_SPLITTER)) t = t.substring(0, t.indexOf(TYPE_SPLITTER));
-            var n = CaseX.usn2cam.apply(fieldName.substring(0, i));
+            var n = Case.usn2cam.apply(fieldName.substring(0, i));
             return Optional.of(new FieldEntry(n, resolve(t)));
         }
 
@@ -78,7 +78,7 @@ public interface InferenceX {
                 case SUFFIX_F32 -> float.class;
                 case SUFFIX_F64 -> double.class;
                 default -> switch (type.charAt(0)) {
-                    case TYPE_ARRAY -> ReflectX.array(resolve(type.substring(1)));
+                    case TYPE_ARRAY -> Reflect.array(resolve(type.substring(1)));
                     case TYPE_PKG -> {
                         var x = 0;
                         var i = 1;
@@ -89,9 +89,9 @@ public interface InferenceX {
                         }
                         var pkg = PACKAGES.get(x);
                         if (pkg == null) throw new IllegalStateException("missing package in registry of " + x);
-                        yield ReflectX.forName(pkg + '.' + type.substring(i).replaceAll("_", "."));
+                        yield Reflect.forName(pkg + '.' + type.substring(i).replaceAll("_", "."));
                     }
-                    default -> ReflectX.forName(type.substring(1).replaceAll("_", "."));
+                    default -> Reflect.forName(type.substring(1).replaceAll("_", "."));
                 };
             };
         }
@@ -125,7 +125,7 @@ public interface InferenceX {
         }
 
         public String build() {
-            return CaseX.cam2scn.apply(name) + TYPE_DIVIDER + combine(type);
+            return Case.cam2scn.apply(name) + TYPE_DIVIDER + combine(type);
         }
 
     }

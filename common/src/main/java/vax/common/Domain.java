@@ -9,14 +9,14 @@ import java.util.List;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XDomain extends XElement {
+public interface Domain extends Element {
     @Override
-    Class<? extends XDomain> $type();
+    Class<? extends Domain> $type();
 
     /**
      * other dom this is requiring.
      */
-    default List<Class<? extends XDomain>> $requirement() {
+    default List<Class<? extends Domain>> $requirement() {
         return List.of();
     }
 }

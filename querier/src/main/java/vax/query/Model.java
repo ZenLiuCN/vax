@@ -9,15 +9,18 @@ import java.util.List;
  * @since 2024-12-08
  */
 public interface Model<T> {
-    String $name();
 
-    Reader.ModelReader<T> $reader();
-
-    List<Field<?>> $fields();
 
     interface Field<T> {
-        Model<?> $model();
+        Entry<?> $entry();
 
-        Reader.FieldReader<T> $reader();
+        Func.FieldReader<T> $reader();
+    }
+    interface Entry<T>{
+        String $name(boolean schema);
+
+        Func.ModelReader<T> $reader();
+
+        List<Field<?>> $fields();
     }
 }

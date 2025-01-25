@@ -9,7 +9,7 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple3;
 import org.slf4j.helpers.MessageFormatter;
-import vax.common.trait.XData;
+import vax.common.trait.Data;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 @SuppressWarnings("unused")
-public class DomainError extends RuntimeException implements XData {
+public class DomainError extends RuntimeException implements Data {
 
     public static final AtomicInteger STACK_TRACE_SIZE = new AtomicInteger(1024);
     /// error code

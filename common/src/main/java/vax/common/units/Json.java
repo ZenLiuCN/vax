@@ -9,7 +9,7 @@ import java.util.Optional;
  * @author Zen.Liu
  * @since 2025-01-12
  */
-public interface JsonX {
+public interface Json {
     static <T> T primitive(T v, String name) {
         if (v == null) throw DomainError.badRequest().system("corrupt primitive {}").get(name);
         return v;

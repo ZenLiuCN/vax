@@ -10,13 +10,13 @@ import io.vertx.core.Future;
  * @author Zen.Liu
  * @since 2024-10-01
  */
-public interface XAbility extends XEntry, XElement {
+public interface Ability extends Entry, Element {
     @Override
-    Class<? extends XAbility> $type();
+    Class<? extends Ability> $type();
 
     /**
      * @return the simple refer of presents actor
      */
-    Future<XActor> $actor();
+    Future<Actor> $actor();
 
 }
