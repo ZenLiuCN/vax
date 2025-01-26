@@ -1,5 +1,7 @@
 package vax.codegen;
 
+import vax.codegen.utilties.Utility;
+
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -20,7 +22,7 @@ record Util(
         Types types,
         Messager messager,
         Filer filer
-) implements Utility{
+) implements Utility {
     Util(ProcessingEnvironment procEnv, RoundEnvironment roundEnv) {
         this(procEnv.getOptions().containsKey("debug"),
              procEnv,
