@@ -17,20 +17,13 @@ public
 record Util(
         boolean debug,
         ProcessingEnvironment procEnv,
-        RoundEnvironment roundEnv,
-        Elements elements,
-        Types types,
-        Messager messager,
-        Filer filer
+        RoundEnvironment roundEnv
+
 ) implements Utility {
     Util(ProcessingEnvironment procEnv, RoundEnvironment roundEnv) {
         this(procEnv.getOptions().containsKey("debug"),
              procEnv,
-             roundEnv,
-             procEnv.getElementUtils(),
-             procEnv.getTypeUtils(),
-             procEnv.getMessager(),
-             procEnv.getFiler()
+             roundEnv
             );
     }
 }
