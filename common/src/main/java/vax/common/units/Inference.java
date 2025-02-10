@@ -119,7 +119,7 @@ public interface Inference {
             }
             if (type instanceof ParameterizedType t) {
                 return combine(t.getOwnerType()) + TYPE_SPLITTER + Arrays.stream(t.getActualTypeArguments())
-                        .map(FieldEntry::combine).collect(Collectors.joining(TYPE_DELIMITER));
+                        .map(FieldEntry::combine).collect(Collectors.joining(TYPE_PARAMETER_DIVIDER,TYPE_PARAMETER_START,TYPE_PARAMETER_END));
             }
             return "";//TODO
         }
@@ -131,7 +131,9 @@ public interface Inference {
     }
 
     String TYPE_SPLITTER = "$$";
-    String TYPE_DELIMITER = "$$$";
+    String TYPE_PARAMETER_START = "$0";
+    String TYPE_PARAMETER_DIVIDER = "$1";
+    String TYPE_PARAMETER_END = "$2";
     char TYPE_ARRAY = '$';
     char TYPE_PKG = '_';
 

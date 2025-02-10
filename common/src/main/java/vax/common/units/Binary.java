@@ -11,18 +11,17 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Binary proto for transmit.
  * <ul>
- *     <li>v#: var int encoded</li>
- *     <li>z#: zigzag and var int encoded</li>
- *     <li>?Maybe: z4 of size, -1 for null</li>
- *     <li>bs: z4 of size, -1 for null</li>
- *     <li>str: z4 of size, -1 for null</li>
+ *     <li>$v#: var int encoded</li>
+ *     <li>$z#: zigzag int encoded</li>
+ *     <li>$??: non null values</li>
+ *     <li>$bytes: bytes without size</li>
+ *     <li>$binary: none null bytes with size</li>
  * </ul>
  *
  * @author Zen.Liu
@@ -30,7 +29,7 @@ import java.util.function.Function;
  */
 public sealed interface Binary extends Buffer permits Binary.Impl {
     static Binary of(Buffer buffer) {
-        return new Impl(buffer);
+        return buffer instanceof Binary b ? b : new Impl(buffer);
     }
 
     static Binary of(byte[] buffer) {
@@ -724,10 +723,9 @@ public sealed interface Binary extends Buffer permits Binary.Impl {
     Binary slice(int start, int end);
     //endregion
 
-    /**
-     * read one byte as boolean
-     */
-    default boolean b() {
+    //region primitive
+
+    default boolean $b() {
         var v = getByte($pos(1));
         return v > 0;
     }
@@ -735,190 +733,189 @@ public sealed interface Binary extends Buffer permits Binary.Impl {
     /**
      * write boolean as  one byte
      */
-    default Binary b(boolean b) {
+    default Binary $b(boolean b) {
         return appendByte((byte) (b ? 1 : -1));
     }
 
     /**
      * read one byte
      */
-    default byte i8() {
+    default byte $i8() {
         return getByte($pos());
     }
 
-    default Binary i8(byte b) {
+    default Binary $i8(byte b) {
         return appendByte(b);
     }
 
     /**
      * read two byte as short
      */
-    default short i16() {
+    default short $i16() {
         return getShort($pos(2));
     }
 
-    default Binary i16(short b) {
+    default Binary $i16(short b) {
         return appendShort(b);
     }
 
     /**
      * read four byte as int
      */
-    default int i32() {
+    default int $i32() {
         return getInt($pos(4));
     }
 
-    default Binary i32(int b) {
+    default Binary $i32(int b) {
         return appendInt(b);
     }
 
     /**
      * read eight byte as long int
      */
-    default long i64() {
+    default long $i64() {
         return getLong($pos(8));
     }
 
-    default Binary i64(long b) {
+    default Binary $i64(long b) {
         return appendLong(b);
     }
 
     /**
      * read four byte as float
      */
-    default float f32() {
+    default float $f32() {
         return getFloat($pos(4));
     }
 
-    default Binary f32(float b) {
+    default Binary $f32(float b) {
         return appendFloat(b);
     }
 
     /**
      * read eight byte as double float
      */
-    default double f64() {
+    default double $f64() {
         return getDouble($pos(8));
     }
 
-    default Binary f64(double b) {
+    default Binary $f64(double b) {
         return appendDouble(b);
     }
 
     /**
      * read var int
      */
-    default int v32() {
+    default int $v32() {
         var result = 0;
         var shift = 0;
-        var by = i8();
+        var by = $i8();
         while (true) {
             result |= (by & 0x7f) << shift;
             if ((by & 0x80) != 0x80) break;
-            by = i8();
+            by = $i8();
             shift += 7;
         }
         return result;
     }
 
-    default Binary v32(int n) {
+    default Binary $v32(int n) {
         while ((n & ~0x7F) != 0) {
-            i8(((byte) ((n & 0x7F) | 0x80)));
+            $i8(((byte) ((n & 0x7F) | 0x80)));
             n >>>= 7;
         }
-        return i8((byte) n); //!Last
+        return $i8((byte) n); //!Last
     }
 
 
     /**
      * read var long int
      */
-    default long v64() {
+    default long $v64() {
         var result = 0L;
         var shift = 0L;
-        var by = i8();
+        var by = $i8();
         while (true) {
             result |= (by & 0x7fL) << shift;
             if ((by & 0x80) != 0x80) break;
-            by = i8();
+            by = $i8();
             shift += 7L;
         }
         return result;
     }
 
-    default Binary v64(long n) {
+    default Binary $v64(long n) {
         while ((n & ~0x7FL) != 0) {
-            i8(((byte) ((n & 0x7FL) | 0x80L)));
+            $i8(((byte) ((n & 0x7FL) | 0x80L)));
             n >>>= 7;
         }
-        return i8((byte) n); //!Last
+        return $i8((byte) n); //!Last
     }
 
     /**
      * read zig-zag var int
      */
-    default int z32() {
-        var v = v32();
+    default int $z32() {
+        var v = $v32();
         return (v >> 1) ^ -(v & 1);
     }
 
-    default Binary z32(int v) {
+    default Binary $z32(int v) {
         v = (v << 1) ^ (v >> 31);
-        return v32(v);
+        return $v32(v);
     }
 
     /**
      * read zig-zag var long int
      */
-    default long z64() {
-        var v = v64();
+    default long $z64() {
+        var v = $v64();
         return (v >> 1L) ^ -(v & 1L);
     }
 
-    default Binary z64(long v) {
+    default Binary $z64(long v) {
         v = (v << 1L) ^ (v >> 63);
-        return v64(v);
+        return $v64(v);
     }
 
     /**
-     * read size bytes,allow null.
+     * write bytes without size
      */
-    default byte @Nullable [] bin() {
-        var n = z32();
-        if (n < 0) return null;
+    default Binary $bytes(byte[] n) {
+        if (n == null || n.length == 0) {
+            return this;
+        }
+        return appendBytes(n);
+    }
+
+    /**
+     * read bytes with size
+     */
+    default byte[] $bytes(int n) {
+        assert n >= 0 : "size must positive";
+        if (n == 0) {
+            return Values.EMPTY_BYTES;
+        }
         var b = new byte[n];
-        if (n == 0) return b;
         var p = $pos(n);
         getBytes(p, pos(), b);
         return b;
     }
 
-    default Binary bin(byte @Nullable [] n) {
-        if (n == null) {
-            return z32(-1);
-        }
-        if (n.length == 0) {
-            return z32(0);
-        }
-        return z32(n.length).appendBytes(n);
-    }
-
-    default byte[] binary() {
-        var n = v32();
+    default byte[] $binary() {
+        var n = $v32();
         if (n < 0) throw new IllegalStateException("should not be null");
-        var b = new byte[n];
-        if (n == 0) return b;
-        var p = $pos(n);
-        getBytes(p, pos(), b);
-        return b;
+        if (n == 0) return Values.EMPTY_BYTES;
+        return $bytes(n);
     }
 
-    default Binary binary(byte[] n) {
+    default Binary $binary(byte[] n) {
         if (n.length == 0) {
-            return v32(0);
+            return $v32(0);
         }
-        return v32(n.length).appendBytes(n);
+        return $v32(n.length).appendBytes(n);
     }
+    //endregion
 
     /**
      * @return peek a byte
@@ -941,17 +938,38 @@ public sealed interface Binary extends Buffer permits Binary.Impl {
         return getLong(pos());
     }
 
-    default String str() {
-        var b = bin();
+
+    /**
+     * read size bytes,allow null.
+     */
+    default byte @Nullable [] binary() {
+        var n = $z32();
+        if (n < 0) return null;
+        if (n == 0) return Values.EMPTY_BYTES;
+        return $bytes(n);
+    }
+
+    default Binary binary(byte @Nullable [] n) {
+        if (n == null) {
+            return $z32(-1);
+        }
+        if (n.length == 0) {
+            return $z32(0);
+        }
+        return $z32(n.length).appendBytes(n);
+    }
+
+    default String text() {
+        var b = binary();
         if (b == null) return null;
         if (b.length == 0) return "";
         return new String(b, StandardCharsets.UTF_8);
     }
 
-    default Binary str(String v) {
-        if (v == null) return z32(-1);
-        if (v.isBlank()) return z32(0);
-        return bin(v.getBytes(StandardCharsets.UTF_8));
+    default Binary text(String v) {
+        if (v == null) return $z32(-1);
+        if (v.isEmpty()) return $z32(0);
+        return binary(v.getBytes(StandardCharsets.UTF_8));
     }
 
     default Binary accept(Consumer<Binary> act) {
@@ -963,14 +981,18 @@ public sealed interface Binary extends Buffer permits Binary.Impl {
         return act.apply(this);
     }
 
-    default <R> R sized(BiFunction<Binary, Integer, R> act) {
-        return act.apply(this, v32());
+    interface SizedReader<T> {
+        T apply(Binary b, int size);
     }
 
-    default <R> Optional<R> sizedOpt(BiFunction<Binary, Integer, R> act) {
-        var z = z32();
+    default <R> R sized(SizedReader<R> act) {
+        return act.apply(this, $v32());
+    }
+
+    default <R> Optional<R> sizedMaybe(SizedReader<R> act) {
+        var z = $z32();
         if (z < 0) return Optional.empty();
-        return Optional.of(act.apply(this, z));
+        return Optional.ofNullable(act.apply(this, z));
     }
 
 
