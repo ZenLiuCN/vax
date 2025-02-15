@@ -23,6 +23,10 @@ public interface Fn {
     static <T> Function<Optional<T>,T> require(Supplier<? extends RuntimeException> error) {
         return t -> t.orElseThrow(error);
     }
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    static <T> T orNull(Optional<T> v) {
+        return v.orElse(null);
+    }
     static <T> Function<T,Optional<T>> maybe() {
         return Optional::ofNullable;
     }
