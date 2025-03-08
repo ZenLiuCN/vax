@@ -26,7 +26,7 @@ public interface Entry extends
 
         public static Identity identity(String id) {
             var b = Binary.of(Base64.getUrlDecoder().decode(id));
-            return new Identity(b.v64(), b.v32());
+            return new Identity(b.$v64(), b.$v32());
         }
 
         public String identity() {
@@ -36,7 +36,7 @@ public interface Entry extends
         @Override
         public String toString() {
             var b = Binary.of();
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(b.v64(id).v32(version).getBytes());
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(b.$v64(id).$v32(version).getBytes());
         }
     }
 }

@@ -1,1210 +1,384 @@
 package vax.query;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.intellij.lang.annotations.MagicConstant;
 
-import java.math.BigDecimal;
-import java.nio.Buffer;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.Temporal;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/// value
-public interface Value<T> extends Expr<T> {
-    //region nullability
+/**
+ * @author Zen.Liu
+ * @since 2025-03-07
+ */
+public interface Value<T> {
+    record param<T>(T value) implements Value<T> {}
+    record hold<T>(Class<T> value,String key) implements Value<T> {}
 
-    default bool isNull() {
-        return new ExprNull<>(this, true);
+    default Bool eq(T v) {
+        return eq(new param<>(v));
     }
 
-    default bool notNull() {
-        return new ExprNull<>(this, false);
+    default Bool neq(T v) {
+        return neq(new param<>(v));
     }
 
-    //endregion
-    //region equality
-
-    default bool eq(Value<T> v) {
-        return new ExprEqual<>(this, v, true);
+    default Bool eq(Value<T> v) {
+        return new binary<>(this, v, EQ);
     }
 
-    default bool neq(Value<T> v) {
-        return new ExprEqual<>(this, v, false);
+    default Bool neq(Value<T> v) {
+        return new binary<>(this, v, NEQ);
     }
 
-    default bool eq(T v) {
-        return new ExprEqual<>(this, v, true);
+    default Bool exists() {
+        return new unary<>(this, NON_NULL);
     }
 
-    default bool neq(T v) {
-        return new ExprEqual<>(this, v, false);
+    default Bool missing() {
+        return new unary<>(this, NULL);
     }
 
-    //endregion
+    default Model.Field<T> as(String name) {
+        return new Model.Field.Virtual<>(this, name);
+    }
 
-    sealed interface numeric<T extends Number> extends Value<T> permits ExprMathBinary, ExprMathUnary,
-            Identity.numeric, Raw.numeric, json.JsonExpr.NumExpr,
-            numeric.decimal, numeric.float32, numeric.float64, numeric.int16,
-            numeric.int32, numeric.int64, numeric.int8 {
 
-        //region equality
+    interface Operation {
+        int op();
+    }
 
-        default bool eq(numeric<T> v) {
-            return vax.query.Value.super.eq(v);
+
+    int NONE = 0;
+
+    int EQ = 1;
+    int NEQ = 2;
+    int BTW = 3;
+    int NULL = 4;
+    int NON_NULL = 5;
+    int GT = 6;
+    int GTE = 7;
+    int LT = 8;
+    int LTE = 9;
+    int NOT = 10;
+    int AND = 11;
+    int OR = 12;
+    int PLUS = 13;
+    int MINUS = 14;
+    int TIMES = 15;
+    int DIV = 16;
+    int MOD = 17;
+    int BIT_SHR = 18;
+    int BIT_SHL = 19;
+    int BIT_NOT = 20;
+    int BIT_OR = 21;
+    int BIT_AND = 22;
+    int BIT_XOR = 23;
+    int START = 24;
+    int END = 25;
+    int INCLUDE = 26;
+    int CONCAT = 27;
+    int JSON_MERGE = 28;
+    int JSON_GET = 29;
+    int JSON_SET = 30;
+    int JSON_DELETE = 31;
+    int TIME_ADD = 32;
+    int TIME_FIELD = 33;
+
+
+    record binary<T>(Value<T> v0, Value<T> v1, @MagicConstant(valuesFromClass = Expr.class) int op) implements Bool,
+                                                                                                               Operation {
+    }
+
+    record unary<T>(Value<T> v0, @MagicConstant(valuesFromClass = Expr.class) int op) implements Bool, Operation {}
+
+    record triple<T>(Value<T> v0, Value<T> v1, Value<T> v2,
+                     @MagicConstant(valuesFromClass = Expr.class) int op) implements
+                                                                          Bool,
+                                                                          Operation {}
+
+
+    Bool TRUE = new Bool() {};
+    Bool FALSE = new Bool() {};
+
+    interface Bool extends Value<Boolean> {
+        default Bool not() {
+            return new unary<>(this, NOT);
         }
 
-        default bool neq(numeric<T> v) {
-            return vax.query.Value.super.neq(v);
+        default Bool and(Value<Boolean> v) {
+            return new binary<>(this, v, AND);
         }
 
-        //endregion
-
-        //region compare
-
-        default bool lt(numeric<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.LT);
+        default Bool or(Value<Boolean> v) {
+            return new binary<>(this, v, OR);
         }
+    }
 
-        default bool gt(numeric<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.GT);
+    record concat(List<Value<CharSequence>> v) implements Text, Operation {
+        @Override
+        public int op() {
+            return CONCAT;
         }
+    }
 
-        default bool lte(numeric<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.LTE);
-        }
-
-        default bool gte(numeric<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.GTE);
-        }
-
-        default bool lt(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.LT);
-        }
-
-        default bool gt(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.GT);
-        }
-
-        default bool lte(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.LTE);
-        }
-
-        default bool gte(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.GTE);
-        }
-
-        //endregion
-
-        //region collection
-
+    interface Text extends Value<CharSequence> {
         @SuppressWarnings("unchecked")
-        default bool in(numeric<T>... v) {
-            return new ExprIn<>(this, v, true);
+        default Text concat(Value<CharSequence> v0, Value<CharSequence>... v) {
+            var x = Arrays.asList(v);
+            x.add(0, v0);
+            x.add(0, this);
+            return new concat(x);
         }
 
-        @SuppressWarnings("unchecked")
-        default bool in(T... v) {
-            return new ExprIn<>(this, Arrays.stream(v)
-                    .map(Param::of)
-                    .toArray(Expr[]::new), true);
+        default Bool startWith(Value<CharSequence> v) {
+            return new binary<>(this, v, START);
         }
 
-        @SuppressWarnings("unchecked")
-        default bool notIn(numeric<T>... v) {
-            return new ExprIn<>(this, v, false);
+        default Bool endWith(Value<CharSequence> v) {
+            return new binary<>(this, v, END);
         }
 
-        @SuppressWarnings("unchecked")
-        default bool notIn(T... v) {
-            return new ExprIn<>(this, v, false);
-        }
-
-        //endregion
-
-        //region range
-
-        default bool between(numeric<T> lo, numeric<T> hi) {
-            return new ExprBtw<>(this, lo, hi, true);
-        }
-
-        default bool notBetween(numeric<T> lo, numeric<T> hi) {
-            return new ExprBtw<>(this, lo, hi, false);
-        }
-
-        default bool between(T lo, T hi) {
-            return new ExprBtw<>(this, lo, hi, true);
-        }
-
-
-        default bool notBetween(T lo, T hi) {
-            return new ExprBtw<>(this, lo, hi, false);
-        }
-
-        //endregion
-
-        //region math
-
-        default numeric<T> plus(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.PLUS);
-        }
-
-        default numeric<T> minus(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.MINUS);
-        }
-
-        default numeric<T> times(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.TIMES);
-        }
-
-        default numeric<T> divide(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.DIVIDE);
-        }
-
-        default numeric<T> mod(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.MODULO);
-        }
-
-        default numeric<T> rem(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.REMINDER);
-        }
-
-        default numeric<T> neg() {
-            return new ExprMathUnary<>(this, ExprMathUnary.NEGATIVE);
-        }
-
-
-        default numeric<T> plus(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.PLUS);
-        }
-
-        default numeric<T> minus(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.MINUS);
-        }
-
-        default numeric<T> times(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.TIMES);
-        }
-
-        default numeric<T> divide(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.DIVIDE);
-        }
-
-        default numeric<T> mod(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.MODULO);
-        }
-
-        default numeric<T> rem(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.REMINDER);
-        }
-        //endregion
-
-        //region bitwise
-
-        default numeric<T> bAND(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_AND);
-        }
-
-        default numeric<T> bOR(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_OR);
-        }
-
-        default numeric<T> bXOR(numeric<T> v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_XOR);
-        }
-
-        default numeric<T> bNOT() {
-            if (this instanceof Expr.ExprMathUnary<T> e
-                    && e.isbNOT()
-                    && e.v0() instanceof numeric<T> n)
-                return n;
-            return new ExprMathUnary<>(this, ExprMathUnary.BIT_NOT);
-        }
-
-        default numeric<T> bAND(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_AND);
-        }
-
-        default numeric<T> bOR(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_OR);
-        }
-
-        default numeric<T> bXOR(T v) {
-            return new ExprMathBinary<>(this, v, ExprMathBinary.BIT_XOR);
-        }
-
-        //endregion
-
-        non-sealed interface int8 extends numeric<Byte> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Byte.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Byte.class, v, false);
-            }
-
-            default numeric<Byte> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Byte> bOROf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Byte> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Byte> plusOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Byte> minusOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Byte> timesOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Byte> divideOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Byte> modOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Byte> remOf(int v) {
-                return new ExprMathBinary<>(this, Byte.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Byte.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Byte.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Byte.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Byte.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Byte.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Byte.class, v, ExprCompare.GTE);
-            }
-            //endregion
-
-        }
-
-        non-sealed interface int16 extends numeric<Short> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Short.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Short.class, v, false);
-            }
-
-            default numeric<Short> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Short> bOROf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Short> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Short> plusOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Short> minusOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Short> timesOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Short> divideOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Short> modOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Short> remOf(int v) {
-                return new ExprMathBinary<>(this, Short.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Short.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Short.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Short.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Short.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Short.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Short.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface int32 extends numeric<Integer> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Integer.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Integer.class, v, false);
-            }
-
-            default numeric<Integer> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Integer> bOROf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Integer> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Integer> plusOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Integer> minusOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Integer> timesOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Integer> divideOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Integer> modOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Integer> remOf(int v) {
-                return new ExprMathBinary<>(this, Integer.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Integer.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Integer.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Integer.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Integer.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Integer.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Integer.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface int64 extends numeric<Long> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Long.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Long.class, v, false);
-            }
-
-            default numeric<Long> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Long> bOROf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Long> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Long> plusOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Long> minusOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Long> timesOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Long> divideOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Long> modOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Long> remOf(int v) {
-                return new ExprMathBinary<>(this, Long.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Long.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Long.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Long.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Long.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Long.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Long.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface float32 extends numeric<Float> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Float.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Float.class, v, false);
-            }
-
-            default numeric<Float> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Float> bOROf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Float> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Float> plusOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Float> minusOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Float> timesOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Float> divideOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Float> modOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Float> remOf(int v) {
-                return new ExprMathBinary<>(this, Float.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Float.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Float.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Float.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Float.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Float.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Float.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface float64 extends numeric<Double> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, Double.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, Double.class, v, false);
-            }
-
-            default numeric<Double> bANDOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<Double> bOROf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<Double> bXOROf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<Double> plusOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<Double> minusOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<Double> timesOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<Double> divideOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<Double> modOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<Double> remOf(int v) {
-                return new ExprMathBinary<>(this, Double.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, Double.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, Double.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Double.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Double.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Double.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Double.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface decimal extends numeric<BigDecimal> {
-            /// equals to a placeholder
-            default bool eqOf(int v) {
-                return new ExprEqual<>(this, BigDecimal.class, v, true);
-            }
-
-            /// not equals to a placeholder
-            default bool neqOf(int v) {
-                return new ExprEqual<>(this, BigDecimal.class, v, false);
-            }
-
-            default numeric<BigDecimal> bANDOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.BIT_AND);
-            }
-
-            default numeric<BigDecimal> bOROf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.BIT_OR);
-            }
-
-            default numeric<BigDecimal> bXOROf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.BIT_XOR);
-            }
-
-            default numeric<BigDecimal> plusOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.PLUS);
-            }
-
-            default numeric<BigDecimal> minusOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.MINUS);
-            }
-
-            default numeric<BigDecimal> timesOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.TIMES);
-            }
-
-            default numeric<BigDecimal> divideOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.DIVIDE);
-            }
-
-            default numeric<BigDecimal> modOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.MODULO);
-            }
-
-            default numeric<BigDecimal> remOf(int v) {
-                return new ExprMathBinary<>(this, BigDecimal.class, v, ExprMathBinary.REMINDER);
-            }
-
-            default bool between(int lo, int hi) {
-                return new ExprBtw<>(this, BigDecimal.class, lo, hi, true);
-            }
-
-
-            default bool notBetween(int lo, int hi) {
-                return new ExprBtw<>(this, BigDecimal.class, lo, hi, false);
-            }
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, BigDecimal.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, BigDecimal.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, BigDecimal.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, BigDecimal.class, v, ExprCompare.GTE);
-            }
+        default Bool contains(Value<CharSequence> v) {
+            return new binary<>(this, v, INCLUDE);
         }
     }
 
-    interface binary extends vax.query.Value<byte[]> {
-        /// equals to a placeholder
-        default bool eqOf(int v) {
-            return new ExprEqual<>(this, byte[].class, v, true);
-        }
+    record bNum<T extends Number>(Value<T> left, Value<T> right, int op) implements Numeric<T>, Operation {}
 
-        /// not equals to a placeholder
-        default bool neqOf(int v) {
-            return new ExprEqual<>(this, byte[].class, v, false);
-        }
-    }
+    record bInt<T extends Number>(Value<T> left, Value<T> right, int op) implements Int<T>, Operation {}
 
-    interface blob extends vax.query.Value<Buffer> {
-        /// equals to a placeholder
-        default bool eqOf(int v) {
-            return new ExprEqual<>(this, Buffer.class, v, true);
-        }
+    record uNum<T extends Number>(Value<T> left, int op) implements Numeric<T>, Operation {}
 
-        /// not equals to a placeholder
-        default bool neqOf(int v) {
-            return new ExprEqual<>(this, Buffer.class, v, false);
-        }
-    }
+    record uInt<T extends Number>(Value<T> left, int op) implements Int<T>, Operation {}
 
-    interface text extends vax.query.Value<CharSequence> {
+    record tNum<T extends Number>(Value<T> left, Value<T> right, Value<T> right2, int op)
+            implements Numeric<T>, Operation {}
 
-        //region equality
+    interface Numeric<T extends Number> extends Value<T> {
 
-        default bool eq(text v) {
-            return new ExprEqual<>(this, v, true);
-        }
+        default Bool gt(Value<T> v) {return new binary<>(this, v, GT);}
 
-        default bool neq(text v) {
-            return new ExprEqual<>(this, v, false);
-        }
+        default Bool lt(Value<T> v) {return new binary<>(this, v, LT);}
 
-        ///  equals case-insensitive
-        default bool eqCi(text v) {
-            return new ExprEqual<>(this, v, true, true);
-        }
+        default Bool gte(Value<T> v) {return new binary<>(this, v, GTE);}
 
-        ///  not equals case-insensitive
-        default bool neqCi(text v) {
-            return new ExprEqual<>(this, v, false, true);
-        }
+        default Bool lte(Value<T> v) {return new binary<>(this, v, LTE);}
 
-        default bool eq(CharSequence v) {
-            return new ExprEqual<>(this, v, true);
-        }
+        default Bool between(Value<T> v, Value<T> v1) {return new triple<>(this, v, v1, BTW);}
 
-        default bool neq(CharSequence v) {
-            return new ExprEqual<>(this, v, false);
-        }
+        default Numeric<T> plus(Value<T> v) {return new bNum<>(this, v, PLUS);}
 
-        ///  equals case-insensitive
-        default bool eqCi(CharSequence v) {
-            return new ExprEqual<>(this, v, true, true);
-        }
+        default Numeric<T> minus(Value<T> v) {return new bNum<>(this, v, PLUS);}
 
-        ///  not equals case-insensitive
-        default bool neqCi(CharSequence v) {
-            return new ExprEqual<>(this, v, false, true);
-        }
+        default Numeric<T> div(Value<T> v) {return new bNum<>(this, v, DIV);}
 
-        /// equals to a placeholder
-        default bool eqOf(int v) {
-            return new ExprEqual<>(this, CharSequence.class, v, true);
-        }
+        default Numeric<T> times(Value<T> v) {return new bNum<>(this, v, TIMES);}
 
-        /// not equals to a placeholder
-        default bool neqOf(int v) {
-            return new ExprEqual<>(this, CharSequence.class, v, false);
-        }
+        default Numeric<T> mode(Value<T> v) {return new bNum<>(this, v, MOD);}
 
-        default bool eqCiOf(int v) {
-            return new ExprEqual<>(this, CharSequence.class, v, true, true);
-        }
-
-        /// not equals to a placeholder
-        default bool neqCiOf(int v) {
-            return new ExprEqual<>(this, CharSequence.class, v, false, true);
-        }
-
-        //endregion
-
-        //region collection
-
-        default bool in(text... v) {
-            return new ExprIn<>(this, v, true);
-        }
-
-        default bool notIn(text... v) {
-            return new ExprIn<>(this, v, false);
-        }
-
-        default bool in(CharSequence... v) {
-            return new ExprIn<>(this, v, true);
-        }
-
-        default bool notIn(CharSequence... v) {
-            return new ExprIn<>(this, v, false);
-        }
-
-        //endregion
-
-        //region match
-
-        default bool startWith(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.START);
-        }
-
-        default bool endWith(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.END);
-        }
-
-        default bool contains(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.LIKE);
-        }
-
-        default bool startWith(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.START);
-        }
-
-        default bool endWith(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.END);
-        }
-
-        default bool contains(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.LIKE);
-        }
-
-        default bool startWithCI(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.START, true);
-        }
-
-        default bool endWithCI(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.END, true);
-        }
-
-        default bool containsCI(text v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.LIKE, true);
-        }
-
-        default bool startWithCI(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.START, true);
-        }
-
-        default bool endWithCI(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.END, true);
-        }
-
-        default bool containsCI(CharSequence v) {
-            return new ExprMatchBinary(this, v, ExprMatchBinary.LIKE, true);
-        }
-        //endregion
-    }
-
-    sealed interface json<T> extends Value<T> permits Identity.json, Raw.json, json.jsonArray, json.jsonObject {
-        interface JsonExpr<T> extends Value<T> {
-            json<?> source();
-
-            record BoolExpr(json<?> source, String key, int index) implements json.JsonExpr<Boolean>, bool {}
-
-            record TextExpr(json<?> source, String key, int index) implements json.JsonExpr<CharSequence>, text {}
-
-            record NumExpr<T extends Number>(json<?> source, String key,
-                                             int index) implements json.JsonExpr<T>, numeric<T> {}
-
-            record ArrayExpr(json<?> source, String key,
-                             int index) implements json.JsonExpr<JsonArray>, json.jsonArray {}
-
-            record ObjectExpr(json<?> source, String key,
-                              int index) implements json.JsonExpr<JsonObject>, json.jsonObject {}
-        }
-
-        non-sealed interface jsonObject extends json<JsonObject> {
-            default bool bool(String key) {
-                return new JsonExpr.BoolExpr(this, key, -1);
-            }
-
-            default jsonArray array(String key) {
-                return new JsonExpr.ArrayExpr(this, key, -1);
-            }
-
-            default jsonObject object(String key) {
-                return new JsonExpr.ObjectExpr(this, key, -1);
-            }
-
-            default text text(String key) {
-                return new JsonExpr.TextExpr(this, key, -1);
-            }
-
-            default numeric<Byte> int8(String key) {
-                return new JsonExpr.NumExpr<>(this, key, -1);
-            }
-
-            default numeric<Short> int16(String key) {
-                return new JsonExpr.NumExpr<>(this, key, -1);
-            }
-
-            default numeric<Integer> int32(String key) {
-                return new JsonExpr.NumExpr<>(this, key, -1);
-            }
-
-            default numeric<Long> int64(String key) {
-                return new JsonExpr.NumExpr<>(this, key, -1);
-            }
-        }
-
-        non-sealed interface jsonArray extends json<JsonArray> {
-            default bool bool(int index) {
-                return new JsonExpr.BoolExpr(this, null, index);
-            }
-
-            default jsonArray array(int index) {
-                return new JsonExpr.ArrayExpr(this, null, index);
-            }
-
-            default jsonObject object(int index) {
-                return new JsonExpr.ObjectExpr(this, null, index);
-            }
-
-            default text text(int index) {
-                return new JsonExpr.TextExpr(this, null, index);
-            }
-
-            default numeric<Byte> int8(int index) {
-                return new JsonExpr.NumExpr<>(this, null, index);
-            }
-
-            default numeric<Short> int16(int index) {
-                return new JsonExpr.NumExpr<>(this, null, index);
-            }
-
-            default numeric<Integer> int32(int index) {
-                return new JsonExpr.NumExpr<>(this, null, index);
-            }
-
-            default numeric<Long> int64(int index) {
-                return new JsonExpr.NumExpr<>(this, null, index);
-            }
-        }
 
     }
 
-    sealed interface temporal<T extends Temporal> extends Value<T> permits Identity.temporal, Raw.temporal, temporal.date, temporal.datetime, temporal.time, temporal.timestamp {
+    interface Int<T extends Number> extends Numeric<T> {
+        default Int<T> shr(Int<T> v) {return new bInt<>(this, v, BIT_SHR);}
 
-        //region equality
+        default Int<T> shl(Int<T> v) {return new bInt<>(this, v, BIT_SHL);}
 
-        default bool eq(temporal<T> v) {
-            return new ExprEqual<>(this, v, true);
-        }
+        default Int<T> bOr(Int<T> v) {return new bInt<>(this, v, BIT_OR);}
 
-        default bool neq(temporal<T> v) {
-            return new ExprEqual<>(this, v, false);
-        }
+        default Int<T> bAnd(Int<T> v) {return new bInt<>(this, v, BIT_AND);}
 
-        //endregion
+        default Int<T> bXor(Int<T> v) {return new bInt<>(this, v, BIT_XOR);}
 
-        //region range
+        default Int<T> bNot() {return new uInt<>(this, BIT_NOT);}
+    }
 
-        default bool between(temporal<T> lo, temporal<T> hi) {
-            return new ExprBtw<>(this, lo, hi, true);
-        }
+    record uTime<T extends java.time.temporal.Temporal>(Temporal<T> v, int amount, ChronoUnit unit)
+            implements
+            Temporal<T>,
+            Operation {
 
-        default bool notBetween(temporal<T> lo, temporal<T> hi) {
-            return new ExprBtw<>(this, lo, hi, false);
-        }
-
-        default bool between(T lo, T hi) {
-            return new ExprBtw<>(this, lo, hi, true);
-        }
-
-        default bool notBetween(T lo, T hi) {
-            return new ExprBtw<>(this, lo, hi, false);
-        }
-
-        //endregion
-
-        //region compare
-
-        default bool lt(temporal<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.LT);
-        }
-
-        default bool gt(temporal<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.GT);
-        }
-
-        default bool lte(temporal<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.LTE);
-        }
-
-        default bool gte(temporal<T> v) {
-            return new ExprCompare<>(this, v, ExprCompare.GTE);
-        }
-
-        default bool lt(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.LT);
-        }
-
-        default bool gt(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.GT);
-        }
-
-        default bool lte(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.LTE);
-        }
-
-        default bool gte(T v) {
-            return new ExprCompare<>(this, v, ExprCompare.GTE);
-        }
-
-        //endregion
-
-        non-sealed interface datetime extends temporal<LocalDateTime> {
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, LocalDateTime.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, LocalDateTime.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, LocalDateTime.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, LocalDateTime.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface date extends temporal<LocalDate> {
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, LocalDate.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, LocalDate.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, LocalDate.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, LocalDate.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface time extends temporal<LocalTime> {
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, LocalTime.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, LocalTime.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, LocalTime.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, LocalTime.class, v, ExprCompare.GTE);
-            }
-        }
-
-        non-sealed interface timestamp extends temporal<Instant> {
-
-            default bool ltOf(int v) {
-                return new ExprCompare<>(this, Instant.class, v, ExprCompare.LT);
-            }
-
-            default bool gtOf(int v) {
-                return new ExprCompare<>(this, Instant.class, v, ExprCompare.GT);
-            }
-
-            default bool lteOf(int v) {
-                return new ExprCompare<>(this, Instant.class, v, ExprCompare.LTE);
-            }
-
-            default bool gteOf(int v) {
-                return new ExprCompare<>(this, Instant.class, v, ExprCompare.GTE);
-            }
+        @Override
+        public int op() {
+            return TIME_ADD;
         }
     }
 
-    interface bool extends vax.query.Value<Boolean> {
+    record fTime<T extends java.time.temporal.Temporal>(Temporal<T> v, ChronoField field) implements Int<Integer>,
+                                                                                                     Operation {
 
-        //region equality
+        @Override
+        public int op() {
+            return TIME_FIELD;
+        }
+    }
 
-        default bool eq(bool v) {
-            return new ExprEqual<>(this, v, true);
+    Temporal<Instant> NOW = new Temporal<>() {};
+
+    interface Temporal<T extends java.time.temporal.Temporal> extends Value<T> {
+        default Temporal<T> add(int v, ChronoUnit unit) {
+            return new uTime<>(this, v, unit);
         }
 
-        default bool neq(bool v) {
-            return new ExprEqual<>(this, v, false);
+        default Bool after(Temporal<T> v) {
+            return new binary<>(this, v, GT);
         }
 
-        default bool isTrue() {
-            return
-                    this == Raw.TRUE ? this :
-                            this == Raw.FALSE ? this : new ExprEqual<>(this, Raw.TRUE, true);
+        default Bool before(Temporal<T> v) {
+            return new binary<>(this, v, LT);
         }
 
-        default bool isFalse() {
-            return
-                    this == Raw.TRUE ? Raw.FALSE :
-                            this == Raw.FALSE ? Raw.TRUE
-                                    : new ExprEqual<>(this, Raw.TRUE, false);
+        default Bool between(Temporal<T> v, Temporal<T> v1) {
+            return new triple<>(this, v, v1, BTW);
         }
 
-        //endregion
+        default Int<Integer> field(ChronoField field) {
+            return new fTime<>(this, field);
+        }
+    }
 
-        //region logical
+    interface Binary<T> extends Value<T> {}
 
-        default bool and(bool v) {
-            if (this == Raw.FALSE || v == Raw.FALSE) return Raw.FALSE;
-            else if (this == Raw.TRUE && v == Raw.TRUE) return Raw.TRUE;
-            return new ExprLogicBinary(this, v, ExprLogicBinary.AND);
+
+    sealed interface Json<T> extends Value<T> {
+
+    }
+
+    record jText<T>(Value<T> v, int n, String key) implements Text, Operation {
+        @Override
+        public int op() {
+            return JSON_GET;
+        }
+    }
+
+    record jBool<T>(Value<T> v, int n, String key) implements Bool, Operation {
+        @Override
+        public int op() {
+            return JSON_GET;
+        }
+    }
+
+    record jNumeric<T, R extends Number>(Value<T> v, int n, String key) implements Numeric<R>, Operation {
+        @Override
+        public int op() {
+            return JSON_GET;
+        }
+    }
+
+    record jArray<T>(Value<T> v, int n, String key) implements JArray, Operation {
+        @Override
+        public int op() {
+            return JSON_GET;
+        }
+    }
+
+    record jObject<T>(Value<T> v, int n, String key) implements JObject, Operation {
+        @Override
+        public int op() {
+            return JSON_GET;
+        }
+    }
+
+    record mArray(Value<JsonArray> v0, Value<JsonArray> v1) implements JArray, Operation {
+        @Override
+        public int op() {
+            return JSON_MERGE;
+        }
+    }
+
+    record bArray<T>(Value<JsonArray> v0, List<Object> path, Value<T> v1, int op) implements JArray, Operation {
+
+    }
+
+    record mObject(Value<JsonObject> v0, Value<JsonObject> v1) implements JObject, Operation {
+        @Override
+        public int op() {
+            return JSON_MERGE;
+        }
+    }
+
+    record bObject<T>(Value<JsonObject> v0, List<Object> path, Value<T> v1, int op) implements JObject, Operation {}
+
+    non-sealed interface JArray extends Json<JsonArray> {
+        default Text asText(int n) {
+            return new jText<>(this, n, null);
         }
 
-        default bool or(bool v) {
-            if (this == Raw.TRUE || v == Raw.TRUE) return Raw.TRUE;
-            return new ExprLogicBinary(this, v, ExprLogicBinary.OR);
+        default Bool asBool(int n) {
+            return new jBool<>(this, n, null);
         }
 
-        default bool not() {
-            if (this == Raw.TRUE) return Raw.FALSE;
-            else if (this == Raw.FALSE) return Raw.TRUE;
-            return new ExprLogicUnary(this, ExprLogicUnary.NOT);
+        default <T extends Number> Numeric<T> asNumber(int n) {
+            return new jNumeric<>(this, n, null);
         }
 
-        default bool and(boolean v) {
-            return new ExprLogicBinary(this, v, ExprLogicBinary.AND);
+        default JObject asObject(int n) {
+            return new jObject<>(this, n, null);
         }
 
-        default bool or(boolean v) {
-            return new ExprLogicBinary(this, v, ExprLogicBinary.OR);
+        default JArray asArray(int n) {
+            return new jArray<>(this, n, null);
         }
 
-        default bool andOf(int v) {
-            return new ExprLogicBinary(this, v, ExprLogicBinary.AND);
+        default JArray merge(Value<JsonArray> v) {
+            return new mArray(this, v);
         }
 
-        default bool orOf(int v) {
-            return new ExprLogicBinary(this, v, ExprLogicBinary.OR);
+        default JArray set(Value<?> v, int k, Object... path) {
+            if (path.length == 0)
+                return new bArray<>(this, List.of(k), v, JSON_SET);
+            var x = Arrays.stream(path).map(i -> {
+                if (i instanceof Integer || i instanceof CharSequence) return i;
+                throw new IllegalArgumentException("path can only contains text or integer");
+            }).collect(Collectors.toList());
+            x.add(0, k);
+            return new bArray<>(this, x, v, JSON_SET);
         }
-        //endregion
+    }
+
+    non-sealed interface JObject extends Json<JsonObject> {
+        default Text asText(String k) {
+            return new jText<>(this, -1, k);
+        }
+
+        default Bool asBool(String k) {
+            return new jBool<>(this, -1, k);
+        }
+
+        default <T extends Number> Numeric<T> asNumber(String k) {
+            return new jNumeric<>(this, -1, k);
+        }
+
+        default JObject asObject(String k) {
+            return new jObject<>(this, -1, k);
+        }
+
+        default JArray asArray(String k) {
+            return new jArray<>(this, -1, k);
+        }
+
+        default JObject merge(Value<JsonObject> v) {
+            return new mObject(this, v);
+        }
+
+        default JObject set(Value<?> v, String k, Object... path) {
+            if (path.length == 0)
+                return new bObject<>(this, List.of(k), v, JSON_SET);
+            var x = Arrays.stream(path).map(i -> {
+                if (i instanceof Integer || i instanceof CharSequence) return i;
+                throw new IllegalArgumentException("path can only contains text or integer");
+            }).collect(Collectors.toList());
+            x.add(0, k);
+            return new bObject<>(this, x, v, JSON_SET);
+        }
+
+
     }
 
 
