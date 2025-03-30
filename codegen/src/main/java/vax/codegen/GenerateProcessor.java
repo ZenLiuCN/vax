@@ -52,7 +52,7 @@ public class GenerateProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         var skip = true;
-        for (Processor proc : apt) {
+        for (var proc : apt) {
             skip = skip && proc.handle(skip, new Util(processingEnv, roundEnvironment), set);
         }
         return skip;

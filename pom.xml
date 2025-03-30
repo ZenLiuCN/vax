@@ -65,7 +65,6 @@
         <versions.vertx-opentelemetry>1.18.0</versions.vertx-opentelemetry>
         <versions.jool>0.9.15</versions.jool>
         <versions.jackson>2.16.1</versions.jackson>
-        <versions.javapoet>1.13.0</versions.javapoet>
         <versions.compile-testing>0.21.0</versions.compile-testing>
         <versions.logback-classic>1.5.3</versions.logback-classic>
         <versions.caffeine>3.1.8</versions.caffeine>
@@ -233,13 +232,6 @@
                 <groupId>io.opentelemetry.semconv</groupId>
                 <artifactId>opentelemetry-semconv-incubating</artifactId>
                 <version>1.25.0-alpha</version>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup</groupId>
-                <artifactId>javapoet</artifactId>
-                <version>${versions.javapoet}</version>
-                <optional>true</optional>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.testing.compile</groupId>

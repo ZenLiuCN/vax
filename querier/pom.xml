@@ -23,6 +23,7 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-sql-client-templates</artifactId>
         </dependency>
+
     </dependencies>
 
 </project>
